@@ -12,16 +12,33 @@ slideNumber: true
 history: true
 ---
 
+## Pascal Hertleif
+
+- Web stuff by day, Rust by night!
+- Co-organizer of [Rust Cologne]
+- {[twitter],[github]}.com/killercup
+
+[Rust Cologne]: http://rust.cologne/
+[twitter]: https://twitter.com/killercup
+[github]: https://github.com/killercup
+
+- - -
+
+This talk is an adaption of my blog post [Elegant Library APIs in Rust][post]
+but also takes some inspiration from Brian's [Rust API guidelines][guidelines].
+
+[post]: https://scribbles.pascalhertleif.de/elegant-apis-in-rust.html
+[guidelines]: https://github.com/brson/rust-api-guidelines
+
+# Goals for our libraries
+
 ## Easy to use
 
-- - -
-
-- I.e.: Easy to use _correctly_
-- Flexible
+_ Quick to get started with
+- Easy to use _correctly_
+- Flexible and performant
 
 ## Easy to maintain
-
-- - -
 
 - Common structures, so code is easy to grasp
 - New contributor friendly == Future-self friendly
@@ -33,17 +50,15 @@ Often good practices for one are also helpful for the other.
 
 But not always. In those cases, think of your users first.
 
-## Some easy things first
+# Some easy things first
 
 <aside class="notes">
 Let's warm up with some basics that will make every library nicer.
 </aside>
 
-### Doc tests
+## Doc tests
 
 Well-documented == Well-tested
-
-- - -
 
 ```rust
 /// Check number for awesomeness
@@ -59,9 +74,9 @@ Doc tests are the tests that also help your users.
 
 - - -
 
-#### Rules of thumb
+#### Show how you want your API to be used
 
-Only write doc tests to show how you want your API to be used. Use regular unit tests for weird edge cases.
+Use regular unit tests for weird edge cases.
 
 Always write them from a user's perspective.
 
@@ -69,19 +84,19 @@ They are more useful when they can be copy-pasted.
 
 - - -
 
-But don't clutter them with setup code: Your users probably already have this.
+#### Avoid setup code in doc tests
+
+Your user already have setup code
 
 Start code lines with `#` to hide them in Rustdoc output
 
-**Pro tip:** Put usual helpers/imports/boilerplate in a file, and begin your doc tests with `# include!("src/doctest_helper.rs");`
+**Pro tip:** Put setup code in a file, then `# include!("src/doctest_helper.rs");`
 
 - - -
 
-### Directories and files
+## Directories and files
 
 **Basically:** Follow Cargo's best practices
-
-- - -
 
 - `src/lib.rs`, `src/main.rs`, `src/bin/{name}.rs`
 - `tests/`, `examples/`, `benches/`
@@ -94,19 +109,19 @@ Split this up early on to represent your code's architecture in the file system!
 
 - - -
 
-### Get more compiler errors!
+## Get more compiler errors!
 
 - `#![deny(warnings, missing_docs)]`
 - Use Clippy
 
-### Readme-driven development (et.al.)
+## Readme-driven development (et.al.)
 
 1. Write a nice Readme with code examples that should work.
 2. Use [tango] to turn those examples into tests.
 3. Write the code to make the tests pass!
 
 
-## A Great Type System to Utilize
+# A Great Type System to Utilize
 
 <aside class="notes">
 In Rust, it is _very_ idiomatic to move as many error cases as possible to compile-time.
@@ -132,22 +147,26 @@ Let's dive into some patterns to make your Rust APIs nicer to use.
 
 - - -
 
-### Avoid stringly-typed APIs
+# Avoid stringly-typed APIs
 
-#### Use enums
+## Use enums
 
-#### Use tuple/unit structs
+## Use tuple/unit structs
 
-### Builders
+# Builders
 
-### Accept multiple input types
+# Accept multiple input types
 
-#### Conversion traits
+## Conversion traits
 
-#### Cows
+## Cows
 
-### When in doubt, follow std
+# What would std do?
 
-### Iterators
+# Iterators
 
-### Extension traits
+# Extension traits
+
+# Thanks!
+
+## Any questions?
