@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Pascal Hertleif">
+  <meta name="dcterms.date" content="2017-03-20">
+  <title>Idiomatic Rust Libraries</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="template/css/reveal.css">
+  <style type="text/css">
+    code{white-space: pre;}
+
+    
+          div.sourceCode { overflow-x: auto; }
+      table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+        margin: 0; padding: 0; vertical-align: baseline; border: none; }
+      table.sourceCode { width: 100%; line-height: 100%; }
+      td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+      td.sourceCode { padding-left: 5px; }
+      code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+      code > span.dt { color: #902000; } /* DataType */
+      code > span.dv { color: #40a070; } /* DecVal */
+      code > span.bn { color: #40a070; } /* BaseN */
+      code > span.fl { color: #40a070; } /* Float */
+      code > span.ch { color: #4070a0; } /* Char */
+      code > span.st { color: #4070a0; } /* String */
+      code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+      code > span.ot { color: #007020; } /* Other */
+      code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+      code > span.fu { color: #06287e; } /* Function */
+      code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+      code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+      code > span.cn { color: #880000; } /* Constant */
+      code > span.sc { color: #4070a0; } /* SpecialChar */
+      code > span.vs { color: #4070a0; } /* VerbatimString */
+      code > span.ss { color: #bb6688; } /* SpecialString */
+      code > span.im { } /* Import */
+      code > span.va { color: #19177c; } /* Variable */
+      code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+      code > span.op { color: #666666; } /* Operator */
+      code > span.bu { } /* BuiltIn */
+      code > span.ex { } /* Extension */
+      code > span.pp { color: #bc7a00; } /* Preprocessor */
+      code > span.at { color: #7d9029; } /* Attribute */
+      code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+      code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+      code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+      code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    
+    .reveal a[href^="#"]:visited {
+      color: #8ea9d2;
+    }
+  </style>
+  <link rel="stylesheet" href="template/css/theme/solarized.css" id="theme">
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'template/css/print/pdf.css' : 'template/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+  <!--[if lt IE 9]>
+  <script src="template/lib/js/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+  <h1 class="title">Idiomatic Rust Libraries</h1>
+  <p class="author">Pascal Hertleif</p>
+  <p class="date">2017-03-20</p>
+</section>
+
+<section id="pascal-hertleif" class="slide level2">
+<h2>Pascal Hertleif</h2>
+<ul>
+<li>Web stuff by day, Rust by night!</li>
+<li>Co-organizer of <a href="http://rust.cologne/">Rust Cologne</a></li>
+<li>{<a href="https://twitter.com/killercup">twitter</a>,<a href="https://github.com/killercup">github</a>}.com/killercup</li>
+</ul>
+</section>
+<section class="slide level2">
+
+<p>This talk is an adaption of my blog post <a href="https://scribbles.pascalhertleif.de/elegant-apis-in-rust.html">Elegant Library APIs in Rust</a> but also takes some inspiration from Brian's <a href="https://github.com/brson/rust-api-guidelines">Rust API guidelines</a>.</p>
+</section>
+<section><section id="goals-for-our-libraries" class="titleslide slide level1"><h1>Goals for our libraries</h1></section><section id="easy-to-use" class="slide level2">
+<h2>Easy to use</h2>
+<ul>
+<li>I.e.: Easy to use <em>correctly</em></li>
+<li>Flexible</li>
+</ul>
+</section><section id="easy-to-maintain" class="slide level2">
+<h2>Easy to maintain</h2>
+<ul>
+<li>Common structures, so code is easy to grasp</li>
+<li>New contributor friendly == Future-self friendly</li>
+<li>Well-tested</li>
+</ul>
+</section><section class="slide level2">
+
+<p>Often good practices for one are also helpful for the other.</p>
+<p>But not always. In those cases, think of your users first.</p>
+</section></section>
+<section><section id="some-easy-things-first" class="titleslide slide level1"><h1>Some easy things first</h1></section><section id="doc-tests" class="slide level2">
+<h2>Doc tests</h2>
+<p>Well-documented == Well-tested</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="co">/// Check number for awesomeness</span>
+<span class="co">///</span>
+<span class="co">/// ```rust</span>
+<span class="co">/// assert!(42.is_awesome());</span>
+<span class="co">/// ```</span></code></pre></div>
+<aside class="notes">
+Doc tests are the tests that also help your users.
+</aside>
+</section><section class="slide level2">
+
+<h4 id="show-how-you-want-your-api-to-be-used">Show how you want your API to be used</h4>
+<p>Use regular unit tests for weird edge cases.</p>
+<p>Always write them from a user's perspective.</p>
+<p>They are more useful when they can be copy-pasted.</p>
+</section><section class="slide level2">
+
+<h4 id="avoid-setup-code-in-doc-tests">Avoid setup code in doc tests</h4>
+<p>Your user already have setup code</p>
+<p>Start code lines with <code>#</code> to hide them in Rustdoc output</p>
+<p><strong>Pro tip:</strong> Put setup code in a file, then <code># include!(&quot;src/doctest_helper.rs&quot;);</code></p>
+</section><section id="directories-and-files" class="slide level2">
+<h2>Directories and files</h2>
+<p><strong>Basically:</strong> Follow Cargo's best practices</p>
+<ul>
+<li><code>src/lib.rs</code>, <code>src/main.rs</code>, <code>src/bin/{name}.rs</code></li>
+<li><code>tests/</code>, <code>examples/</code>, <code>benches/</code></li>
+</ul>
+</section><section class="slide level2">
+
+<p>When you start a project, you might end up with 1000 lines in a <code>lib.rs</code>.</p>
+<p>Split this up early on to represent your code's architecture in the file system!</p>
+</section><section id="get-more-compiler-errors" class="slide level2">
+<h2>Get more compiler errors!</h2>
+<ul>
+<li><code>#![deny(warnings, missing_docs)]</code></li>
+<li>Use Clippy</li>
+</ul>
+</section><section id="readme-driven-development-et.al." class="slide level2">
+<h2>Readme-driven development (et.al.)</h2>
+<ol type="1">
+<li>Write a nice Readme with code examples that should work.</li>
+<li>Use [tango] to turn those examples into tests.</li>
+<li>Write the code to make the tests pass!</li>
+</ol>
+</section></section>
+<section><section id="a-great-type-system-to-utilize" class="titleslide slide level1"><h1>A Great Type System to Utilize</h1></section><section class="slide level2">
+
+<blockquote>
+<p>Make illegal states unrepresentable</p>
+<p>-- Haskell mantra</p>
+</blockquote>
+<blockquote>
+<p>The safest program is the program that doesn't compile</p>
+<p>-- ancient Rust proverb</p>
+<p>Actually: <a href="https://twitter.com/ManishEarth/status/843248038139195397">Manish on Twitter</a></p>
+</blockquote>
+<aside class="notes">
+Let's dive into some patterns to make your Rust APIs nicer to use.
+</aside>
+</section><section class="slide level2">
+
+</section></section>
+<section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section id="use-enums" class="slide level2">
+<h2>Use enums</h2>
+</section><section id="use-tupleunit-structs" class="slide level2">
+<h2>Use tuple/unit structs</h2>
+</section></section>
+<section><section id="builders" class="titleslide slide level1"><h1>Builders</h1></section></section>
+<section><section id="accept-multiple-input-types" class="titleslide slide level1"><h1>Accept multiple input types</h1></section><section id="conversion-traits" class="slide level2">
+<h2>Conversion traits</h2>
+</section><section id="cows" class="slide level2">
+<h2>Cows</h2>
+</section></section>
+<section><section id="what-would-std-do" class="titleslide slide level1"><h1>What would std do?</h1></section></section>
+<section><section id="iterators" class="titleslide slide level1"><h1>Iterators</h1></section></section>
+<section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section></section>
+<section><section id="thanks" class="titleslide slide level1"><h1>Thanks!</h1></section><section id="any-questions" class="slide level2">
+<h2>Any questions?</h2>
+</section></section>
+    </div>
+  </div>
+
+  <script src="template/lib/js/head.min.js"></script>
+  <script src="template/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Display a presentation progress bar
+        progress: true,
+        // Display the page number of the current slide
+        slideNumber: true,
+        // Push each slide change to the browser history
+        history: true,
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'template/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'template/plugin/zoom-js/zoom.js', async: true },
+              { src: 'template/plugin/notes/notes.js', async: true }
+        ]
+      });
+    </script>
+    </body>
+</html>
