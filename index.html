@@ -77,23 +77,25 @@
   <p class="date">2017-03-20</p>
 </section>
 
-<section id="pascal-hertleif" class="slide level2">
-<h2>Pascal Hertleif</h2>
+<section id="hi-im-pascal-hertleif" class="slide level2">
+<h2>Hi, I'm Pascal Hertleif</h2>
 <ul>
 <li>Web stuff by day, Rust by night!</li>
 <li>Co-organizer of <a href="http://rust.cologne/">Rust Cologne</a></li>
 <li>{<a href="https://twitter.com/killercup">twitter</a>,<a href="https://github.com/killercup">github</a>}.com/killercup</li>
+<li>Rust-centric blog: <a href="https://deterministic.space/">deterministic.space</a></li>
 </ul>
 </section>
 <section class="slide level2">
 
-<p>This talk is an adaption of my blog post <a href="https://scribbles.pascalhertleif.de/elegant-apis-in-rust.html">Elegant Library APIs in Rust</a> but also takes some inspiration from Brian's <a href="https://github.com/brson/rust-api-guidelines">Rust API guidelines</a>.</p>
+<p>This talk is based on my blog post <a href="https://deterministic.space/elegant-apis-in-rust.html">Elegant Library APIs in Rust</a> but also takes some inspiration from Brian's <a href="https://github.com/brson/rust-api-guidelines">Rust API guidelines</a>.</p>
 </section>
 <section><section id="goals-for-our-libraries" class="titleslide slide level1"><h1>Goals for our libraries</h1></section><section id="easy-to-use" class="slide level2">
 <h2>Easy to use</h2>
 <ul>
-<li>I.e.: Easy to use <em>correctly</em></li>
-<li>Flexible</li>
+<li>Quick to get started with</li>
+<li>Easy to use <em>correctly</em></li>
+<li>Flexible and performant</li>
 </ul>
 </section><section id="easy-to-maintain" class="slide level2">
 <h2>Easy to maintain</h2>
@@ -104,8 +106,13 @@
 </ul>
 </section><section class="slide level2">
 
-<p>Often good practices for one are also helpful for the other.</p>
-<p>But not always. In those cases, think of your users first.</p>
+<blockquote>
+<p>Working in libraries instead of executables, and focusing on the consumer of your API, helps you write better code.</p>
+<p>-- <a href="https://twitter.com/andrewhobden">Andrew on Twitter</a></p>
+</blockquote>
+<aside class="notes">
+Well put, Andrew Hobden!
+</aside>
 </section></section>
 <section><section id="some-easy-things-first" class="titleslide slide level1"><h1>Some easy things first</h1></section><section id="doc-tests" class="slide level2">
 <h2>Doc tests</h2>
@@ -116,79 +123,252 @@
 <span class="co">/// assert!(42.is_awesome());</span>
 <span class="co">/// ```</span></code></pre></div>
 <aside class="notes">
-Doc tests are the tests that also help your users.
+<p>Doc tests are <em>integration</em> tests that are also code examples your users can easily find.</p>
+Use regular tests for weird edge cases.
 </aside>
 </section><section class="slide level2">
 
-<h4 id="show-how-you-want-your-api-to-be-used">Show how you want your API to be used</h4>
-<p>Use regular unit tests for weird edge cases.</p>
+<h3 id="nice-consise-doc-tests">Nice, consise doc tests</h3>
 <p>Always write them from a user's perspective.</p>
-<p>They are more useful when they can be copy-pasted.</p>
-</section><section class="slide level2">
-
-<h4 id="avoid-setup-code-in-doc-tests">Avoid setup code in doc tests</h4>
-<p>Your user already have setup code</p>
-<p>Start code lines with <code>#</code> to hide them in Rustdoc output</p>
+<p>Start code lines with <code>#</code> to hide them in rustdoc output</p>
 <p><strong>Pro tip:</strong> Put setup code in a file, then <code># include!(&quot;src/doctest_helper.rs&quot;);</code></p>
+<aside class="notes">
+<p>They are more useful when they can be copy-pasted.</p>
+<p>Your user already have setup code, so no need to duplicate this everywhere.</p>
+<p>Apropos: I've written about <a href="https://deterministic.space/machine-readable-inline-markdown-code-cocumentation.html">documentation guidelines</a></p>
+<em>Next step:</em> Readme-driven development (et.al.) with tango et.al.!
+</aside>
 </section><section id="directories-and-files" class="slide level2">
 <h2>Directories and files</h2>
 <p><strong>Basically:</strong> Follow Cargo's best practices</p>
 <ul>
-<li><code>src/lib.rs</code>, <code>src/main.rs</code>, <code>src/bin/{name}.rs</code></li>
-<li><code>tests/</code>, <code>examples/</code>, <code>benches/</code></li>
+<li><code>src/lib.rs</code>,</li>
+<li><code>src/main.rs</code>,</li>
+<li><code>src/bin/{name}.rs</code></li>
+<li><code>tests/</code>,</li>
+<li><code>examples/</code>,</li>
+<li><code>benches/</code></li>
 </ul>
-</section><section class="slide level2">
-
-<p>When you start a project, you might end up with 1000 lines in a <code>lib.rs</code>.</p>
-<p>Split this up early on to represent your code's architecture in the file system!</p>
+<aside class="notes">
+<p>When you start a project, you might quickly end up with 1 000 lines in a <code>lib.rs</code></p>
+<p>Split this up early</p>
+Represent your code's architecture in the file system
+</aside>
 </section><section id="get-more-compiler-errors" class="slide level2">
 <h2>Get more compiler errors!</h2>
 <ul>
 <li><code>#![deny(warnings, missing_docs)]</code></li>
-<li>Use Clippy</li>
+<li>Use <a href="https://github.com/Manishearth/rust-clippy">Clippy</a></li>
 </ul>
-</section><section id="readme-driven-development-et.al." class="slide level2">
-<h2>Readme-driven development (et.al.)</h2>
-<ol type="1">
-<li>Write a nice Readme with code examples that should work.</li>
-<li>Use [tango] to turn those examples into tests.</li>
-<li>Write the code to make the tests pass!</li>
-</ol>
+<aside class="notes">
+<p>Have you seen how pretty most of the compile errors look? They're really great. Let's have more of those.</p>
+<p><code>deny(warnings)</code> turns warnings into errors</p>
+<p><code>deny(missing_docs)</code> makes you write documentation for every <em>public</em> item</p>
+Clippy has over 100 clever lints that help you make sure your code is great. E.g., when it sees you wrote a bunch of <code>match</code>/<code>if let</code> code, it often suggests you use one of the many methods on Option/Result, which is more concise and idiomatic.
+</aside>
+</section><section id="keep-the-api-surface-small" class="slide level2">
+<h2>Keep the API surface small</h2>
+<ul>
+<li>Less to learn</li>
+<li>Less to maintain</li>
+<li>Less opportunity to introduce breaking changes</li>
+</ul>
+<p><code>pub use specific::Thing</code> is your friend</p>
+<aside class="notes">
+<p>Maybe this is obvious, but the less public items your API actually has, the less things you have to worry about when making changes or writing documentation.</p>
+It's a good practice to hide implementation details. Be careful with those <code>pub</code>s!
+</aside>
 </section></section>
-<section><section id="a-great-type-system-to-utilize" class="titleslide slide level1"><h1>A Great Type System to Utilize</h1></section><section class="slide level2">
+<section><section id="use-the-type-system-luke" class="titleslide slide level1"><h1>Use the type system, Luke</h1></section><section class="slide level2">
 
 <blockquote>
 <p>Make illegal states unrepresentable</p>
 <p>-- Haskell mantra</p>
 </blockquote>
+<aside class="notes">
+<p>As preferred by that community, the Haskellers puts it in a kinda difficult to read way.</p>
+We Rustaceans are more easily hooked by a promise of safety anyway.
+</aside>
+</section><section class="slide level2">
+
 <blockquote>
 <p>The safest program is the program that doesn't compile</p>
 <p>-- ancient Rust proverb</p>
 <p>Actually: <a href="https://twitter.com/ManishEarth/status/843248038139195397">Manish on Twitter</a></p>
 </blockquote>
 <aside class="notes">
+<p>Now <em>that</em> I can support! And you can trust him, Maniष Goregaokar knows what he's talking about.</p>
 Let's dive into some patterns to make your Rust APIs nicer to use.
+</aside>
+</section></section>
+<section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section id="example-validations" class="slide level2">
+<h2>Example: Validations</h2>
+<p>I recently saw this validation definition:</p>
+<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="st">&#39;required|unique:posts|max:255&#39;</span></code></pre></div>
+<p>It gets parsed at run-time, which is slow and needs to be tested.</p>
+<aside class="notes">
+<p>This is from <a href="https://laravel.com/docs/5.4/validation#validation-quickstart">Laravel</a>.</p>
+<p>Additonally, the syntax for this can be pretty error-prone. Instead of the second pipe I first typed a colon by mistake and it failed silently. This is the probably the worst possible scenario, as it allowed invalid data to be saved.</p>
+Let's see how we can make a nicer version of this in Rust.
 </aside>
 </section><section class="slide level2">
 
-</section></section>
-<section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section id="use-enums" class="slide level2">
-<h2>Use enums</h2>
+<p>We have a list of validation criteria, like this:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="op">[</span>
+  Required,
+  Unique(Posts),
+  Max(<span class="dv">255</span>),
+<span class="op">]</span></code></pre></div>
+<p>How can we represent this?</p>
+</section><section id="using-enums" class="slide level2">
+<h2>Using enums</h2>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">enum</span> Validation <span class="op">{</span>
+  Required,
+  Unique(Table),
+  Min(<span class="dt">u64</span>),
+  Max(<span class="dt">u64</span>),
+<span class="op">}</span>
+
+<span class="kw">struct</span> Table; <span class="co">// somewhere</span></code></pre></div>
+<p>This is nice, but hard to extend.</p>
 </section><section id="use-tupleunit-structs" class="slide level2">
 <h2>Use tuple/unit structs</h2>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">struct</span> Required;
+<span class="kw">struct</span> Unique(Table);
+<span class="kw">struct</span> Min(<span class="dt">u64</span>);
+<span class="kw">struct</span> Max(<span class="dt">u64</span>);</code></pre></div>
+</section><section class="slide level2">
+
+<p>And then, implement a trait like this for each one</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">trait</span> Validate <span class="op">{</span>
+    <span class="kw">fn</span> validate&lt;T&gt;(&amp;<span class="kw">self</span>, data: T) -&gt; <span class="dt">bool</span>;
+<span class="op">}</span></code></pre></div>
+</section><section id="parse-strings" class="slide level2">
+<h2>Parse Strings</h2>
+<p>If you want to be able to construct something from user input (a string), impl <a href="https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html">FromStr</a>:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">impl</span> FromStr <span class="kw">for</span> Validation <span class="op">{</span>
+    <span class="kw">type</span> Err = ParseValidationError;
+    <span class="kw">fn</span> from_str(s: &amp;<span class="dt">str</span>) -&gt; <span class="dt">Result</span>&lt;<span class="kw">Self</span>, <span class="kw">Self</span>::<span class="cn">Err</span>&gt; <span class="op">{</span>
+      <span class="pp">unimplemented!</span>()
+    <span class="op">}</span>
+<span class="op">}</span></code></pre></div>
+</section><section class="slide level2">
+
+<p>This way, you can do:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> std::<span class="dt">str</span>::FromStr;
+
+<span class="kw">let</span> validations = <span class="st">&quot;max:42|required&quot;</span>.parse()?;</code></pre></div>
+<aside class="notes">
+Type annotations elided. Please use nice error handling.
+</aside>
 </section></section>
-<section><section id="builders" class="titleslide slide level1"><h1>Builders</h1></section></section>
-<section><section id="accept-multiple-input-types" class="titleslide slide level1"><h1>Accept multiple input types</h1></section><section id="conversion-traits" class="slide level2">
-<h2>Conversion traits</h2>
-</section><section id="cows" class="slide level2">
-<h2>Cows</h2>
+<section><section id="builders" class="titleslide slide level1"><h1>Builders</h1></section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust">Command::new(<span class="st">&quot;ls&quot;</span>).arg(<span class="st">&quot;-l&quot;</span>)
+    .stdin(Stdio::null())
+    .stdout(Stdio::inherit())
+    .env_clear()
+    .spawn()</code></pre></div>
+<aside class="notes">
+This is using <code>std::process::Command</code> to build a subprocess and spawn it.
+</aside>
+</section><section class="slide level2">
+
+<p>Builders allow you to</p>
+<ul>
+<li>validate and convert parameters implicitly</li>
+<li>use default values</li>
+<li>keep your internal structure hidden</li>
+</ul>
+</section><section class="slide level2">
+
+<p>Builders are forward compatible:</p>
+<p>You can change your struct's field as much as you want</p>
+<aside class="notes">
+<p>Another example:</p>
+<p>In <a href="https://github.com/diesel-rs/diesel/pull/868">Diesel PR #868</a>, we wanted to make the <code>revert_latest_migration</code> function work with custom directories. This is a breaking change -- it adds a parameter to a public function.</p>
+<p>My suggestion was to create a <code>Migration</code> structure that can only be built by calling some methods -- a builder, basically -- and add the currently free-standing functions to it. This way, we can add a lot of new behavior in the future that may depend on new settings, without breaking backward compatibility.</p>
+</aside>
+</section></section>
+<section><section id="make-typical-conversions-easy" class="titleslide slide level1"><h1>Make typical conversions easy</h1></section><section class="slide level2">
+
+<p>Rust is a pretty concise and expressive language</p>
+<div class="fragment">
+<p>...if you implement the right traits</p>
+</div>
+</section><section class="slide level2">
+
+<p>Reduce boilerplate by converting input data</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust">File::open(<span class="st">&quot;foo.txt&quot;</span>)</code></pre></div>
+<p>Open file at this <code>Path</code> (by converting our <code>&amp;str</code>)</p>
+</section><section class="slide level2">
+
+<p>Implementing these traits makes it easier to work with your types</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> serde_json::Value <span class="kw">as</span> Json;
+
+<span class="kw">let</span> a = Json::from(<span class="dv">42</span>);
+<span class="kw">let</span> b: Json = <span class="st">&quot;Foobar&quot;</span>.into();</code></pre></div>
+</section><section class="slide level2">
+
+<p><code>std::convert</code> is your friend</p>
+<ul>
+<li><code>AsRef</code>: Reference to reference conversions</li>
+<li><code>From</code>/<code>Into</code>: Value conversions</li>
+<li><code>TryFrom</code>/<code>TryInto</code>: Fallible conversions</li>
+</ul>
+<aside class="notes">
+<ul>
+<li>A <code>From</code> impl implies <code>Into</code></li>
+<li><code>Try{From,Into}</code> are not yet stable</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li>We just saw <code>impl AsRef&lt;Path&gt; for Path</code></li>
+<li><code>impl From&lt;[u8; 4]&gt; for IpAddr</code></li>
+</ul>
+</aside>
 </section></section>
 <section><section id="what-would-std-do" class="titleslide slide level1"><h1>What would std do?</h1></section></section>
-<section><section id="iterators" class="titleslide slide level1"><h1>Iterators</h1></section></section>
-<section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section></section>
+<section><section id="session-types" class="titleslide slide level1"><h1>Session types</h1></section><section id="dangers-shitty-error-messages" class="slide level2">
+<h2>Dangers: Shitty error messages</h2>
+<pre class="text"><code>// insert diesel error message with invalid filter</code></pre>
+<aside class="notes">
+<p>Example: Diesel</p>
+<ul>
+<li>has traits for query builder things, like <code>FilterDsl</code> and <code>OrderDsl</code></li>
+<li>they are implemented for all types with some constraints</li>
+<li>sadly, that means that when you want to use <code>.filter</code> with an invalid query, you get an <code>unknown method filter, note: FilterDsl is implemente for &lt;fuuuuuuuuu&gt;</code> message</li>
+</ul>
+</aside>
+</section></section>
 <section><section id="thanks" class="titleslide slide level1"><h1>Thanks!</h1></section><section id="any-questions" class="slide level2">
 <h2>Any questions?</h2>
+</section><section class="slide level2">
+
+<p>More time!</p>
+<p>More slides!</p>
+<figure>
+<img src="assets/its-happening.gif" />
+</figure>
 </section></section>
+<section><section id="iterators" class="titleslide slide level1"><h1>Iterators</h1></section><section class="slide level2">
+
+<p>Iterators are one of Rust's superpowers</p>
+<p>Functional programming as a zero-cost abstraction</p>
+<aside class="notes">
+<p>I'm one of those people who'd rather read</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="pp">vec!</span><span class="op">[</span><span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span><span class="op">]</span>.iter().flat_map(<span class="dt">str</span>::chars).any(<span class="dt">char</span>::is_whitespace);</code></pre></div>
+and who enjoys writing chains of method calls with closures
+</aside>
+</section><section class="slide level2">
+
+</section><section class="slide level2">
+
+<p>Iterators can also be used to abstract over collections</p>
+<aside class="notes">
+</aside>
+</section></section>
+<section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section></section>
     </div>
   </div>
 
