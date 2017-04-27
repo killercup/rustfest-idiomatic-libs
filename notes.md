@@ -2,7 +2,7 @@ Rust has been a stable lang for just 2 years, little time to actually develop id
 
 - - -
 
-Rust has a few very important concepts/building blocks, _the rest is dioims_!
+Rust has a few very important concepts/building blocks, _the rest is idioms_!
 
 > Everything is...
 >

@@ -12,7 +12,7 @@ slideNumber: true
 history: true
 ---
 
-## Pascal Hertleif
+## Hi, I'm Pascal Hertleif
 
 - Web stuff by day, Rust by night!
 - Co-organizer of [Rust Cologne]
@@ -26,7 +26,7 @@ history: true
 
 - - -
 
-This talk is an adaption of my blog post [Elegant Library APIs in Rust][post]
+This talk is based on my blog post [Elegant Library APIs in Rust][post]
 but also takes some inspiration from Brian's [Rust API guidelines][guidelines].
 
 [post]: https://deterministic.space/elegant-apis-in-rust.html
@@ -51,6 +51,10 @@ but also takes some inspiration from Brian's [Rust API guidelines][guidelines].
 > Working in libraries instead of executables, and focusing on the consumer of your API, helps you write better code.
 >
 > -- [Andrew on Twitter](https://twitter.com/andrewhobden)
+
+<aside class="notes">
+Well put, Andrew Hobden!
+</aside>
 
 # Some easy things first
 
@@ -97,6 +101,8 @@ They are more useful when they can be copy-pasted.
 
 Your user already have setup code, so no need to duplicate this everywhere.
 
+Apropos: I've written about [documentation guidelines](https://deterministic.space/machine-readable-inline-markdown-code-cocumentation.html)
+
 *Next step:* Readme-driven development (et.al.) with tango et.al.!
 </aside>
 
@@ -123,7 +129,7 @@ Represent your code's architecture in the file system
 
 - - -
 
-## Get _more_ compiler errors!
+## Get more compiler errors!
 
 - `#![deny(warnings, missing_docs)]`
 - Use [Clippy]
@@ -132,6 +138,7 @@ Represent your code's architecture in the file system
 
 <aside class="notes">
 Have you seen how pretty most of the compile errors look? They're really great.
+Let's have more of those.
 
 `deny(warnings)` turns warnings into errors
 
@@ -160,7 +167,7 @@ It's a good practice to hide implementation details. Be careful with those `pub`
 </aside>
 
 
-# Use the Type System, Luke
+# Use the type system, Luke
 
 <aside class="notes">
 In Rust, it is _very_ idiomatic to move as many error cases as possible to compile-time.
@@ -174,6 +181,14 @@ If you have been using scripting languages a lot, this may seem unfamiliar.
 >
 > -- Haskell mantra
 
+<aside class="notes">
+As preferred by that community, the Haskellers puts it in a kinda difficult to read way.
+
+We Rustaceans are more easily hooked by a promise of safety anyway.
+</aside>
+
+- - -
+
 > The safest program is the program that doesn't compile
 >
 > -- ancient Rust proverb
@@ -181,10 +196,10 @@ If you have been using scripting languages a lot, this may seem unfamiliar.
 > Actually: [Manish on Twitter](https://twitter.com/ManishEarth/status/843248038139195397)
 
 <aside class="notes">
+Now *that* I can support! And you can trust him, Maniष Goregaokar knows what he's talking about.
+
 Let's dive into some patterns to make your Rust APIs nicer to use.
 </aside>
-
-- - -
 
 # Avoid stringly-typed APIs
 
@@ -230,6 +245,8 @@ enum Validation {
   Min(u64),
   Max(u64),
 }
+
+struct Table; // somewhere
 ```
 
 This is nice, but hard to extend.
@@ -253,22 +270,28 @@ trait Validate {
 }
 ```
 
-## FromStr
+## Parse Strings
 
 If you want to be able to construct something from user input (a string), impl [FromStr]:
 
 [FromStr]: https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html
 
 ```rust
-impl FromStr for Vec<Validation> {
+impl FromStr for Validation {
     type Err = ParseValidationError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> { ... }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+      unimplemented!()
+    }
 }
 ```
+
+- - -
 
 This way, you can do:
 
 ```rust
+use std::str::FromStr;
+
 let validations = "max:42|required".parse()?;
 ```
 
@@ -278,19 +301,103 @@ Type annotations elided. Please use nice error handling.
 
 # Builders
 
-# Accept multiple input types
+- - -
 
-## Conversion traits
+```rust
+Command::new("ls").arg("-l")
+    .stdin(Stdio::null())
+    .stdout(Stdio::inherit())
+    .env_clear()
+    .spawn()
+```
 
-- Reduce boilerplate by automatically converting input data
+<aside class="notes">
+This is using `std::process::Command` to build a subprocess and spawn it.
+</aside>
 
-## Cows
+- - -
+
+Builders allow you to
+
+- validate and convert parameters implicitly
+- use default values
+- keep your internal structure hidden
+
+- - -
+
+Builders are forward compatible:
+
+You can change your struct's field as much as you want
+
+<aside class="notes">
+Another example:
+
+In [Diesel PR #868], we wanted to make the `revert_latest_migration` function
+work with custom directories. This is a breaking change -- it adds a parameter
+to a public function.
+
+My suggestion was to create a `Migration` structure that can only be built by
+calling some methods -- a builder, basically -- and add the currently
+free-standing functions to it. This way, we can add a lot of new behavior in the
+future that may depend on new settings, without breaking backward compatibility.
+
+[Diesel PR #868]: https://github.com/diesel-rs/diesel/pull/868
+</aside>
+
+
+# Make typical conversions easy
+
+- - -
+
+Rust is a pretty concise and expressive language
+
+. . .
+
+...if you implement the right traits
+
+
+- - -
+
+Reduce boilerplate by converting input data
+
+```rust
+File::open("foo.txt")
+```
+
+Open file at this `Path` (by converting our `&str`)
+
+- - -
+
+Implementing these traits makes it easier to work with your types
+
+```rust
+use serde_json::Value as Json;
+
+let a = Json::from(42);
+let b: Json = "Foobar".into();
+```
+
+- - -
+
+`std::convert` is your friend
+
+- `AsRef`: Reference to reference conversions
+- `From`/`Into`: Value conversions
+- `TryFrom`/`TryInto`: Fallible conversions
+
+<aside class="notes">
+- A `From` impl implies `Into`
+- `Try{From,Into}` are not yet stable
+
+Examples:
+
+- We just saw `impl AsRef<Path> for Path`
+- `impl From<[u8; 4]> for IpAddr`
+
+</aside>
+
 
 # What would std do?
-
-# Iterators
-
-# Extension traits
 
 # Session types
 
@@ -311,3 +418,58 @@ Example: Diesel
 # Thanks!
 
 ## Any questions?
+
+- - -
+
+More time!
+
+More slides!
+
+![](assets/its-happening.gif)
+
+# Iterators
+
+- - -
+
+Iterators are one of Rust's superpowers
+
+Functional programming as a zero-cost abstraction
+
+<aside class="notes">
+I'm one of those people who'd rather read
+
+```rust
+vec!["foo", "bar"].iter().flat_map(str::chars).any(char::is_whitespace);
+```
+
+and who enjoys writing chains of method calls with closures
+</aside>
+
+- - -
+
+# Into Iterator
+
+Abstract over collections
+
+Avoid allocations
+
+
+```rust
+fn foo(data: &HashMap<i32, i32>) { }
+
+fn bar<D>(data: D) where
+  D: IntoIterator<Item=(i32, i32)> { }
+```
+
+<aside class="notes">
+This works with
+
+- Other iterators
+- HashMaps
+- BTreeMap
+- LinkedHashMap
+- ...
+</aside>
+
+
+# Extension traits
