@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="generator" content="pandoc">
   <meta name="author" content="Pascal Hertleif">
-  <meta name="dcterms.date" content="2017-03-20">
+  <meta name="dcterms.date" content="2017-04-27">
   <title>Idiomatic Rust Libraries</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -74,7 +74,7 @@
 <section>
   <h1 class="title">Idiomatic Rust Libraries</h1>
   <p class="author">Pascal Hertleif</p>
-  <p class="date">2017-03-20</p>
+  <p class="date">2017-04-27</p>
 </section>
 
 <section id="hi-im-pascal-hertleif" class="slide level2">
@@ -89,6 +89,9 @@
 <section class="slide level2">
 
 <p>This talk is based on my blog post <a href="https://deterministic.space/elegant-apis-in-rust.html">Elegant Library APIs in Rust</a> but also takes some inspiration from Brian's <a href="https://github.com/brson/rust-api-guidelines">Rust API guidelines</a>.</p>
+<aside class="notes">
+<p>I have to warn you: There will be a lot of code. Far too much, actually. But this is a talk about how to write idiomatic code, so there is no going around it, short of inventing a new <em>graphical</em> pseudo-language.</p>
+</aside>
 </section>
 <section><section id="goals-for-our-libraries" class="titleslide slide level1"><h1>Goals for our libraries</h1></section><section id="easy-to-use" class="slide level2">
 <h2>Easy to use</h2>
@@ -203,10 +206,9 @@ Let's dive into some patterns to make your Rust APIs nicer to use.
 </section></section>
 <section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section id="example-validations" class="slide level2">
 <h2>Example: Validations</h2>
-<p>I recently saw this validation definition:</p>
-<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="st">&#39;required|unique:posts|max:255&#39;</span></code></pre></div>
-<p>It gets parsed at run-time, which is slow and needs to be tested.</p>
+<p><code>'required|unique:posts|max:255'</code></p>
 <aside class="notes">
+<p>I recently saw this validation definition. It gets parsed at run-time, which is slow and needs to have unit tests.</p>
 <p>This is from <a href="https://laravel.com/docs/5.4/validation#validation-quickstart">Laravel</a>.</p>
 <p>Additonally, the syntax for this can be pretty error-prone. Instead of the second pipe I first typed a colon by mistake and it failed silently. This is the probably the worst possible scenario, as it allowed invalid data to be saved.</p>
 Let's see how we can make a nicer version of this in Rust.
@@ -243,15 +245,6 @@ Let's see how we can make a nicer version of this in Rust.
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">trait</span> Validate <span class="op">{</span>
     <span class="kw">fn</span> validate&lt;T&gt;(&amp;<span class="kw">self</span>, data: T) -&gt; <span class="dt">bool</span>;
 <span class="op">}</span></code></pre></div>
-</section><section id="parse-strings" class="slide level2">
-<h2>Parse Strings</h2>
-<p>If you want to be able to construct something from user input (a string), impl <a href="https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html">FromStr</a>:</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">impl</span> FromStr <span class="kw">for</span> Validation <span class="op">{</span>
-    <span class="kw">type</span> Err = ParseValidationError;
-    <span class="kw">fn</span> from_str(s: &amp;<span class="dt">str</span>) -&gt; <span class="dt">Result</span>&lt;<span class="kw">Self</span>, <span class="kw">Self</span>::<span class="cn">Err</span>&gt; <span class="op">{</span>
-      <span class="pp">unimplemented!</span>()
-    <span class="op">}</span>
-<span class="op">}</span></code></pre></div>
 </section><section class="slide level2">
 
 <p>This way, you can do:</p>
@@ -259,7 +252,34 @@ Let's see how we can make a nicer version of this in Rust.
 
 <span class="kw">let</span> validations = <span class="st">&quot;max:42|required&quot;</span>.parse()?;</code></pre></div>
 <aside class="notes">
-Type annotations elided. Please use nice error handling.
+<p>Type annotations elided. Please use nice error handling.</p>
+</aside>
+</section></section>
+<section><section id="avoid-lots-of-booleans" class="titleslide slide level1"><h1>Avoid lots of booleans</h1></section><section class="slide level2">
+
+<p><code>bool</code> is just</p>
+<p><code>enum bool { true, false }</code></p>
+<p>Write your own!</p>
+</section><section class="slide level2">
+
+<p><code>enum EnvVars { Clear, Inherit }</code></p>
+<p><code>enum DisplayStyle { Color, Monochrome }</code></p>
+<aside class="notes">
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> run(command: &amp;<span class="dt">str</span>, clear_env: <span class="dt">bool</span>) <span class="op">{}</span>
+
+run(<span class="st">&quot;ls -lah&quot;</span>, <span class="cn">false</span>);</code></pre></div>
+<p>becomes</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> run(command: &amp;<span class="dt">str</span>, color: <span class="dt">bool</span>) <span class="op">{}</span>
+
+run(<span class="st">&quot;ls -lah&quot;</span>, EnvVars::Inherit);</code></pre></div>
+<p>and</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> output(text: &amp;<span class="dt">str</span>, style: DisplayStyle) <span class="op">{}</span>
+
+output(<span class="st">&quot;foo&quot;</span>, <span class="cn">true</span>);</code></pre></div>
+<p>becomes</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> output(text: &amp;<span class="dt">str</span>, style: DisplayStyle) <span class="op">{}</span>
+
+output(<span class="st">&quot;foo&quot;</span>, DisplayStyle::Color);</code></pre></div>
 </aside>
 </section></section>
 <section><section id="builders" class="titleslide slide level1"><h1>Builders</h1></section><section class="slide level2">
@@ -295,6 +315,9 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <p>Rust is a pretty concise and expressive language</p>
 <div class="fragment">
 <p>...if you implement the right traits</p>
+<aside class="notes">
+<p>Traits are the basic building block for nice APIs in Rust.</p>
+</aside>
 </div>
 </section><section class="slide level2">
 
@@ -304,10 +327,14 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 </section><section class="slide level2">
 
 <p>Implementing these traits makes it easier to work with your types</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">let</span> x: IpAddress = (<span class="dv">127</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>).into();</code></pre></div>
+<aside class="notes">
+<p>Another example:</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> serde_json::Value <span class="kw">as</span> Json;
 
 <span class="kw">let</span> a = Json::from(<span class="dv">42</span>);
 <span class="kw">let</span> b: Json = <span class="st">&quot;Foobar&quot;</span>.into();</code></pre></div>
+</aside>
 </section><section class="slide level2">
 
 <p><code>std::convert</code> is your friend</p>
@@ -328,22 +355,61 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 </ul>
 </aside>
 </section></section>
-<section><section id="what-would-std-do" class="titleslide slide level1"><h1>What would std do?</h1></section></section>
-<section><section id="session-types" class="titleslide slide level1"><h1>Session types</h1></section><section id="dangers-shitty-error-messages" class="slide level2">
-<h2>Dangers: Shitty error messages</h2>
-<pre class="text"><code>// insert diesel error message with invalid filter</code></pre>
+<section><section id="what-would-std-do" class="titleslide slide level1"><h1>What would std do?</h1></section><section class="slide level2">
+
+<p>All the examples we've seen so far are from <code>std</code></p>
+<p>If you do like <code>std</code> does, people will feel right at home</p>
 <aside class="notes">
-<p>Example: Diesel</p>
+<p>Rust's std lib is a great resource that every Rust programmer knows</p>
+</aside>
+</section><section class="slide level2">
+
+<p>Implement ALL the traits!</p>
 <ul>
-<li>has traits for query builder things, like <code>FilterDsl</code> and <code>OrderDsl</code></li>
-<li>they are implemented for all types with some constraints</li>
-<li>sadly, that means that when you want to use <code>.filter</code> with an invalid query, you get an <code>unknown method filter, note: FilterDsl is implemente for &lt;fuuuuuuuuu&gt;</code> message</li>
+<li class="fragment">Debug, (Partial)Ord, (Partial)Eq, Hash</li>
+<li class="fragment">Display, Error</li>
+<li class="fragment">Default</li>
+<li class="fragment">(Serde's Serialize + Deserialize)</li>
 </ul>
+</section><section id="goodies-parse-strings" class="slide level2">
+<h2>Goodies: Parse Strings</h2>
+<p>Get <code>&quot;foo&quot;.parse()</code> with <a href="https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html">FromStr</a>:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">impl</span> FromStr <span class="kw">for</span> Validation <span class="op">{</span>
+    <span class="kw">type</span> Err = ParseValidationError;
+
+    <span class="kw">fn</span> from_str(s: &amp;<span class="dt">str</span>) -&gt; <span class="dt">Result</span>&lt;<span class="kw">Self</span>, <span class="kw">Self</span>::<span class="cn">Err</span>&gt; <span class="op">{</span>
+      <span class="pp">unimplemented!</span>()
+    <span class="op">}</span>
+<span class="op">}</span></code></pre></div>
+</section><section id="goodies-iterator" class="slide level2">
+<h2>Goodies: Iterator</h2>
+<p>Let you users iterate over your data types</p>
+<aside class="notes">
+<p>Iterators are great and many Rustaceans love working with them</p>
+<p>Help them by making your data structures implement the Iterator interface</p>
 </aside>
 </section></section>
-<section><section id="thanks" class="titleslide slide level1"><h1>Thanks!</h1></section><section id="any-questions" class="slide level2">
-<h2>Any questions?</h2>
-</section><section class="slide level2">
+<section><section id="session-types" class="titleslide slide level1"><h1>Session types</h1></section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust">HttpResponse::new()
+.header(<span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;1&quot;</span>)
+.header(<span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;2&quot;</span>)
+.body(<span class="st">&quot;Lorem ipsum&quot;</span>)
+.header(<span class="st">&quot;Baz&quot;</span>, <span class="st">&quot;3&quot;</span>)
+<span class="co">// ^- Error, no such method</span></code></pre></div>
+<aside class="notes">
+<p>Let's imagine we're implementing a protocol like HTTP</p>
+<p>We first need to write the headers, and then the body of the request</p>
+<p>Rust lets us write the implementation in such a way that after writing the first line of the body you can't call <code>add_header</code> any more.</p>
+</aside>
+</section><section id="implementing-session-types" class="slide level2">
+<h2>Implementing Session Types</h2>
+<ol type="1">
+<li>New data type for each state</li>
+<li><code>struct Data&lt;T&gt; { }</code> + <code>impl X for Data&lt;Foo&gt; { }</code> + <code>impl X for Data&lt;Bar&gt; { }</code></li>
+</ol>
+</section></section>
+<section><section id="do-we-have-some-more-time" class="titleslide slide level1"><h1>Do we have some more time?</h1></section><section class="slide level2">
 
 <p>More time!</p>
 <p>More slides!</p>
@@ -360,15 +426,39 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="pp">vec!</span><span class="op">[</span><span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span><span class="op">]</span>.iter().flat_map(<span class="dt">str</span>::chars).any(<span class="dt">char</span>::is_whitespace);</code></pre></div>
 and who enjoys writing chains of method calls with closures
 </aside>
-</section><section class="slide level2">
+</section><section id="intoiter-as-input" class="slide level2">
+<h2><code>IntoIter</code> as input</h2>
+<p>Abstract over collections</p>
+<p>Avoid allocations</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> foo(data: &amp;HashMap&lt;<span class="dt">i32</span>, <span class="dt">i32</span>&gt;) <span class="op">{</span> <span class="op">}</span>
 
-</section><section class="slide level2">
-
-<p>Iterators can also be used to abstract over collections</p>
+<span class="kw">fn</span> bar&lt;D&gt;(data: D) <span class="kw">where</span>
+  D: IntoIterator&lt;Item=(<span class="dt">i32</span>, <span class="dt">i32</span>)&gt; <span class="op">{</span> <span class="op">}</span></code></pre></div>
 <aside class="notes">
+<p>This works with</p>
+<ul>
+<li>Other iterators</li>
+<li>HashMaps</li>
+<li>BTreeMap</li>
+<li>LinkedHashMap</li>
+<li>...</li>
+</ul>
 </aside>
+</section><section id="construct-types-using-fromiterator" class="slide level2">
+<h2>Construct types using FromIterator</h2>
+<p>The magic behind <code>.collect()</code></p>
 </section></section>
-<section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section></section>
+<section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section><section class="slide level2">
+
+<p>Write a new trait</p>
+<p>Usually: Implement it for <code>std</code> types</p>
+<p>But you can also: Implement it generically for other traits!</p>
+</section><section class="slide level2">
+
+</section></section>
+<section><section id="thanks" class="titleslide slide level1"><h1>Thanks!</h1></section><section id="any-questions" class="slide level2">
+<h2>Any questions?</h2>
+</section></section>
     </div>
   </div>
 
