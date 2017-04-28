@@ -4,7 +4,7 @@ categories:
 - rust
 - presentation
 author: Pascal Hertleif
-date: 2017-03-20
+date: 2017-04-27
 # pandoc settings
 theme: solarized
 progress: true
@@ -31,6 +31,13 @@ but also takes some inspiration from Brian's [Rust API guidelines][guidelines].
 
 [post]: https://deterministic.space/elegant-apis-in-rust.html
 [guidelines]: https://github.com/brson/rust-api-guidelines
+
+<aside class="notes">
+I have to warn you: There will be a lot of code. Far too much, actually.
+But this is a talk about how to write idiomatic code, so there is no going around it,
+short of inventing a new *graphical* pseudo-language.
+
+</aside>
 
 # Goals for our libraries
 
@@ -270,21 +277,6 @@ trait Validate {
 }
 ```
 
-## Parse Strings
-
-If you want to be able to construct something from user input (a string), impl [FromStr]:
-
-[FromStr]: https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html
-
-```rust
-impl FromStr for Validation {
-    type Err = ParseValidationError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-      unimplemented!()
-    }
-}
-```
-
 - - -
 
 This way, you can do:
@@ -297,6 +289,57 @@ let validations = "max:42|required".parse()?;
 
 <aside class="notes">
 Type annotations elided. Please use nice error handling.
+
+</aside>
+
+# Avoid lots of booleans
+
+- - -
+
+`bool` is just
+
+`enum bool { true, false }`
+
+Write your own!
+
+- - -
+
+`enum EnvVars { Clear, Inherit }`
+
+`enum DisplayStyle { Color, Monochrome }`
+
+<aside class="notes">
+
+```rust
+fn run(command: &str, clear_env: bool) {}
+
+run("ls -lah", false);
+```
+
+becomes
+
+```rust
+fn run(command: &str, color: bool) {}
+
+run("ls -lah", EnvVars::Inherit);
+```
+
+and
+
+```rust
+fn output(text: &str, style: DisplayStyle) {}
+
+output("foo", true);
+```
+
+becomes
+
+```rust
+fn output(text: &str, style: DisplayStyle) {}
+
+output("foo", DisplayStyle::Color);
+```
+
 </aside>
 
 # Builders
@@ -356,6 +399,11 @@ Rust is a pretty concise and expressive language
 ...if you implement the right traits
 
 
+<aside class="notes">
+Traits are the basic building block for nice APIs in Rust.
+
+</aside>
+
 - - -
 
 Reduce boilerplate by converting input data
@@ -399,25 +447,84 @@ Examples:
 
 # What would std do?
 
+- - -
+
+All the examples we've seen so far are from `std`
+
+If you do like `std` does, people will feel right at home
+
+<aside class="notes">
+Rust's std lib is a great resource that every Rust programmer knows
+
+</aside>
+
+- - -
+
+Implement ALL the traits!
+
+> - Debug, (Partial)Ord, (Partial)Eq, Hash
+> - Display, Error
+> - Default
+> - (Serde's Serialize + Deserialize)
+
+- - -
+
+## Goodies: Parse Strings
+
+Get `"foo".parse()` with [FromStr]:
+
+[FromStr]: https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html
+
+```rust
+impl FromStr for Validation {
+    type Err = ParseValidationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+      unimplemented!()
+    }
+}
+```
+
+- - -
+
+## Goodies: Iterator
+
+Let you users iterate over your data types
+
+<aside class="notes">
+Iterators are great and many Rustaceans love working with them
+
+Help them by making your data structures implement the Iterator interface
+
+</aside>
+
+
 # Session types
 
-## Dangers: Shitty error messages
+- - -
 
-```text
-// insert diesel error message with invalid filter
+```rust
+HttpResponse::new()
+.header("Foo", "1")
+.header("Bar", "2")
+.body("Lorem ipsum")
+.header("Baz", "3")
+// ^- Error, no such method
 ```
 
 <aside class="notes">
-Example: Diesel
+Let's imagine we're implementing a protocol like HTTP
 
-- has traits for query builder things, like `FilterDsl` and `OrderDsl`
-- they are implemented for all types with some constraints
-- sadly, that means that when you want to use `.filter` with an invalid query, you get an `unknown method filter, note: FilterDsl is implemente for <fuuuuuuuuu>` message
+We first need to write the headers, and then the body of the request
+
+Rust lets us write the implementation in such a way that
+after writing the first line of the body you can't call `add_header` any more.
+
 </aside>
 
-# Thanks!
+- - -
 
-## Any questions?
+# Do we have some more time?
 
 - - -
 
@@ -473,3 +580,9 @@ This works with
 
 
 # Extension traits
+
+
+
+# Thanks!
+
+## Any questions?
