@@ -212,15 +212,12 @@ Let's dive into some patterns to make your Rust APIs nicer to use.
 
 ## Example: Validations
 
-I recently saw this validation definition:
-
-```php
-'required|unique:posts|max:255'
-```
-
-It gets parsed at run-time, which is slow and needs to be tested.
+`'required|unique:posts|max:255'`
 
 <aside class="notes">
+I recently saw this validation definition.
+It gets parsed at run-time, which is slow and needs to have unit tests.
+
 This is from [Laravel](https://laravel.com/docs/5.4/validation#validation-quickstart).
 
 Additonally, the syntax for this can be pretty error-prone. Instead of the second pipe I first typed a colon by mistake and it failed silently.
@@ -419,11 +416,19 @@ Open file at this `Path` (by converting our `&str`)
 Implementing these traits makes it easier to work with your types
 
 ```rust
+let x: IpAddress = (127, 0, 0, 1).into();
+```
+
+<aside class="notes">
+Another example:
+
+```rust
 use serde_json::Value as Json;
 
 let a = Json::from(42);
 let b: Json = "Foobar".into();
 ```
+</aside>
 
 - - -
 
@@ -524,6 +529,12 @@ after writing the first line of the body you can't call `add_header` any more.
 
 - - -
 
+## Implementing Session Types
+
+1. New data type for each state
+2. `struct Data<T> { }` + `impl X for Data<Foo> { }` + `impl X for Data<Bar> { }`
+
+
 # Do we have some more time?
 
 - - -
@@ -533,6 +544,7 @@ More time!
 More slides!
 
 ![](assets/its-happening.gif)
+
 
 # Iterators
 
@@ -554,7 +566,7 @@ and who enjoys writing chains of method calls with closures
 
 - - -
 
-# Into Iterator
+## `IntoIter` as input
 
 Abstract over collections
 
@@ -579,7 +591,23 @@ This works with
 </aside>
 
 
+## Construct types using FromIterator
+
+The magic behind `.collect()`
+
+
+
 # Extension traits
+
+- - -
+
+Write a new trait
+
+Usually: Implement it for `std` types
+
+But you can also: Implement it generically for other traits!
+
+- - -
 
 
 
