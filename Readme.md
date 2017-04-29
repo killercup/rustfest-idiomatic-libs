@@ -95,7 +95,7 @@ Use regular tests for weird edge cases.
 
 - - -
 
-### Nice, consise doc tests
+### Nice, concise doc tests
 
 Always write them from a user's perspective.
 
@@ -210,82 +210,40 @@ Let's dive into some patterns to make your Rust APIs nicer to use.
 
 # Avoid stringly-typed APIs
 
-## Example: Validations
-
-`'required|unique:posts|max:255'`
-
 <aside class="notes">
-I recently saw this validation definition.
-It gets parsed at run-time, which is slow and needs to have unit tests.
+In dynamically-typed languages, you often use strings as parameters to specify options.
+This is not how you do it Rust. Write types instead!
 
-This is from [Laravel](https://laravel.com/docs/5.4/validation#validation-quickstart).
-
-Additonally, the syntax for this can be pretty error-prone. Instead of the second pipe I first typed a colon by mistake and it failed silently.
-This is the probably the worst possible scenario, as it allowed invalid data to be saved.
-
-Let's see how we can make a nicer version of this in Rust.
 </aside>
 
 - - -
 
-We have a list of validation criteria, like this:
+`fn print_in_color(color: &str, text: &str) {}`
 
-```rust
-[
-  Required,
-  Unique(Posts),
-  Max(255),
-]
-```
+. . .
 
-How can we represent this?
+`print_in_color("Foobar", "blue");`
 
-## Using enums
+<aside class="notes">
+Just a regular function, right?
 
-```rust
-enum Validation {
-  Required,
-  Unique(Table),
-  Min(u64),
-  Max(u64),
-}
-
-struct Table; // somewhere
-```
-
-This is nice, but hard to extend.
-
-## Use tuple/unit structs
-
-```rust
-struct Required;
-struct Unique(Table);
-struct Min(u64);
-struct Max(u64);
-```
+... oops. Runtime error!
+</aside>
 
 - - -
 
-And then, implement a trait like this for each one
-
 ```rust
-trait Validate {
-    fn validate<T>(&self, data: T) -> bool;
-}
-```
+fn print_in_color(color: Color, text: &str) {}
 
-- - -
+enum Color { Red, Green, CornflowerBlue }
 
-This way, you can do:
-
-```rust
-use std::str::FromStr;
-
-let validations = "max:42|required".parse()?;
+print_in_color(Green, "lgtm");
 ```
 
 <aside class="notes">
-Type annotations elided. Please use nice error handling.
+This is way more idiomatic. Very nice.
+
+Later: `"red".parse::<Color>()?`
 
 </aside>
 
@@ -309,7 +267,6 @@ Write your own!
 
 ```rust
 fn run(command: &str, clear_env: bool) {}
-
 run("ls -lah", false);
 ```
 
@@ -317,7 +274,6 @@ becomes
 
 ```rust
 fn run(command: &str, color: bool) {}
-
 run("ls -lah", EnvVars::Inherit);
 ```
 
@@ -325,7 +281,6 @@ and
 
 ```rust
 fn output(text: &str, style: DisplayStyle) {}
-
 output("foo", true);
 ```
 
@@ -333,7 +288,6 @@ becomes
 
 ```rust
 fn output(text: &str, style: DisplayStyle) {}
-
 output("foo", DisplayStyle::Color);
 ```
 
@@ -416,7 +370,7 @@ Open file at this `Path` (by converting our `&str`)
 Implementing these traits makes it easier to work with your types
 
 ```rust
-let x: IpAddress = (127, 0, 0, 1).into();
+let x: IpAddress = [127, 0, 0, 1].into();
 ```
 
 <aside class="notes">
@@ -454,9 +408,9 @@ Examples:
 
 - - -
 
-All the examples we've seen so far are from `std`
+All the examples we've seen so far are from `std`!
 
-If you do like `std` does, people will feel right at home
+Do it like `std` and people will feel right at home
 
 <aside class="notes">
 Rust's std lib is a great resource that every Rust programmer knows
@@ -470,7 +424,9 @@ Implement ALL the traits!
 > - Debug, (Partial)Ord, (Partial)Eq, Hash
 > - Display, Error
 > - Default
-> - (Serde's Serialize + Deserialize)
+> - ([Serde]'s Serialize + Deserialize)
+
+[Serde]: http://serde.rs/
 
 - - -
 
@@ -484,22 +440,28 @@ Get `"foo".parse()` with [FromStr]:
 impl FromStr for Validation {
     type Err = ParseValidationError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-      unimplemented!()
-    }
+    fn from_str(s: &str) -> Result<Self, Self::Err> { }
 }
 ```
 
-- - -
+<aside class="notes">
+One of the lesser known features of std.
+You should implement this trait whenever you want to parse a string into a type.
+
+Implemented e.g. for IP address parsing.
+
+Please note that this can fail and you should give it a good, custom error type.
+
+</aside>
 
 ## Goodies: Iterator
 
-Let you users iterate over your data types
+Let your users iterate over your data types
 
 <aside class="notes">
 Iterators are great and many Rustaceans love working with them
 
-Help them by making your data structures implement the Iterator interface
+Help them by making your data structures implement the Iterator interface!
 
 </aside>
 
@@ -543,7 +505,7 @@ More time!
 
 More slides!
 
-![](assets/its-happening.gif)
+![](assets/its-happening.gif "It's happening meme gif")
 
 
 # Iterators
@@ -603,12 +565,88 @@ The magic behind `.collect()`
 
 Write a new trait
 
-Usually: Implement it for `std` types
+- Implement it for types like `Result<YourData>`
+- Implement it generically for other traits!
 
-But you can also: Implement it generically for other traits!
+
+# Example: Validations
+
+`'required|unique:posts|max:255'`
+
+<aside class="notes">
+I recently saw this validation definition.
+It gets parsed at run-time, which is slow and needs to have unit tests.
+
+This is from [Laravel](https://laravel.com/docs/5.4/validation#validation-quickstart).
+
+Additionally, the syntax for this can be pretty error-prone. Instead of the second pipe I first typed a colon by mistake and it failed silently.
+This is the probably the worst possible scenario, as it allowed invalid data to be saved.
+
+Let's see how we can make a nicer version of this in Rust.
+</aside>
 
 - - -
 
+We have a list of validation criteria, like this:
+
+```rust
+[
+  Required,
+  Unique(Posts),
+  Max(255),
+]
+```
+
+How can we represent this?
+
+## Using enums
+
+```rust
+enum Validation {
+  Required,
+  Unique(Table),
+  Min(u64),
+  Max(u64),
+}
+
+struct Table; // somewhere
+```
+
+This is nice, but hard to extend.
+
+## Use tuple/unit structs
+
+```rust
+struct Required;
+struct Unique(Table);
+struct Min(u64);
+struct Max(u64);
+```
+
+- - -
+
+And then, implement a trait like this for each one
+
+```rust
+trait Validate {
+    fn validate<T>(&self, data: T) -> bool;
+}
+```
+
+- - -
+
+This way, you can do:
+
+```rust
+use std::str::FromStr;
+
+let validations = "max:42|required".parse()?;
+```
+
+<aside class="notes">
+Type annotations elided. Please use nice error handling.
+
+</aside>
 
 
 # Thanks!

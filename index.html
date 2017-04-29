@@ -131,7 +131,7 @@ Use regular tests for weird edge cases.
 </aside>
 </section><section class="slide level2">
 
-<h3 id="nice-consise-doc-tests">Nice, consise doc tests</h3>
+<h3 id="nice-concise-doc-tests">Nice, concise doc tests</h3>
 <p>Always write them from a user's perspective.</p>
 <p>Start code lines with <code>#</code> to hide them in rustdoc output</p>
 <p><strong>Pro tip:</strong> Put setup code in a file, then <code># include!(&quot;src/doctest_helper.rs&quot;);</code></p>
@@ -204,55 +204,26 @@ We Rustaceans are more easily hooked by a promise of safety anyway.
 Let's dive into some patterns to make your Rust APIs nicer to use.
 </aside>
 </section></section>
-<section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section id="example-validations" class="slide level2">
-<h2>Example: Validations</h2>
-<p><code>'required|unique:posts|max:255'</code></p>
+<section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section class="slide level2">
+
+<p><code>fn print_in_color(color: &amp;str, text: &amp;str) {}</code></p>
+<div class="fragment">
+<p><code>print_in_color(&quot;Foobar&quot;, &quot;blue&quot;);</code></p>
 <aside class="notes">
-<p>I recently saw this validation definition. It gets parsed at run-time, which is slow and needs to have unit tests.</p>
-<p>This is from <a href="https://laravel.com/docs/5.4/validation#validation-quickstart">Laravel</a>.</p>
-<p>Additonally, the syntax for this can be pretty error-prone. Instead of the second pipe I first typed a colon by mistake and it failed silently. This is the probably the worst possible scenario, as it allowed invalid data to be saved.</p>
-Let's see how we can make a nicer version of this in Rust.
+<p>Just a regular function, right?</p>
+... oops. Runtime error!
 </aside>
+</div>
 </section><section class="slide level2">
 
-<p>We have a list of validation criteria, like this:</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="op">[</span>
-  Required,
-  Unique(Posts),
-  Max(<span class="dv">255</span>),
-<span class="op">]</span></code></pre></div>
-<p>How can we represent this?</p>
-</section><section id="using-enums" class="slide level2">
-<h2>Using enums</h2>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">enum</span> Validation <span class="op">{</span>
-  Required,
-  Unique(Table),
-  Min(<span class="dt">u64</span>),
-  Max(<span class="dt">u64</span>),
-<span class="op">}</span>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> print_in_color(color: Color, text: &amp;<span class="dt">str</span>) <span class="op">{}</span>
 
-<span class="kw">struct</span> Table; <span class="co">// somewhere</span></code></pre></div>
-<p>This is nice, but hard to extend.</p>
-</section><section id="use-tupleunit-structs" class="slide level2">
-<h2>Use tuple/unit structs</h2>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">struct</span> Required;
-<span class="kw">struct</span> Unique(Table);
-<span class="kw">struct</span> Min(<span class="dt">u64</span>);
-<span class="kw">struct</span> Max(<span class="dt">u64</span>);</code></pre></div>
-</section><section class="slide level2">
+<span class="kw">enum</span> Color <span class="op">{</span> Red, Green, CornflowerBlue <span class="op">}</span>
 
-<p>And then, implement a trait like this for each one</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">trait</span> Validate <span class="op">{</span>
-    <span class="kw">fn</span> validate&lt;T&gt;(&amp;<span class="kw">self</span>, data: T) -&gt; <span class="dt">bool</span>;
-<span class="op">}</span></code></pre></div>
-</section><section class="slide level2">
-
-<p>This way, you can do:</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> std::<span class="dt">str</span>::FromStr;
-
-<span class="kw">let</span> validations = <span class="st">&quot;max:42|required&quot;</span>.parse()?;</code></pre></div>
+print_in_color(Green, <span class="st">&quot;lgtm&quot;</span>);</code></pre></div>
 <aside class="notes">
-<p>Type annotations elided. Please use nice error handling.</p>
+<p>This is way more idiomatic. Very nice.</p>
+<p>Later: <code>&quot;red&quot;.parse::&lt;Color&gt;()?</code></p>
 </aside>
 </section></section>
 <section><section id="avoid-lots-of-booleans" class="titleslide slide level1"><h1>Avoid lots of booleans</h1></section><section class="slide level2">
@@ -266,19 +237,15 @@ Let's see how we can make a nicer version of this in Rust.
 <p><code>enum DisplayStyle { Color, Monochrome }</code></p>
 <aside class="notes">
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> run(command: &amp;<span class="dt">str</span>, clear_env: <span class="dt">bool</span>) <span class="op">{}</span>
-
 run(<span class="st">&quot;ls -lah&quot;</span>, <span class="cn">false</span>);</code></pre></div>
 <p>becomes</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> run(command: &amp;<span class="dt">str</span>, color: <span class="dt">bool</span>) <span class="op">{}</span>
-
 run(<span class="st">&quot;ls -lah&quot;</span>, EnvVars::Inherit);</code></pre></div>
 <p>and</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> output(text: &amp;<span class="dt">str</span>, style: DisplayStyle) <span class="op">{}</span>
-
 output(<span class="st">&quot;foo&quot;</span>, <span class="cn">true</span>);</code></pre></div>
 <p>becomes</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> output(text: &amp;<span class="dt">str</span>, style: DisplayStyle) <span class="op">{}</span>
-
 output(<span class="st">&quot;foo&quot;</span>, DisplayStyle::Color);</code></pre></div>
 </aside>
 </section></section>
@@ -327,7 +294,7 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 </section><section class="slide level2">
 
 <p>Implementing these traits makes it easier to work with your types</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">let</span> x: IpAddress = (<span class="dv">127</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>).into();</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">let</span> x: IpAddress = <span class="op">[</span><span class="dv">127</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">]</span>.into();</code></pre></div>
 <aside class="notes">
 <p>Another example:</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> serde_json::Value <span class="kw">as</span> Json;
@@ -357,8 +324,8 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 </section></section>
 <section><section id="what-would-std-do" class="titleslide slide level1"><h1>What would std do?</h1></section><section class="slide level2">
 
-<p>All the examples we've seen so far are from <code>std</code></p>
-<p>If you do like <code>std</code> does, people will feel right at home</p>
+<p>All the examples we've seen so far are from <code>std</code>!</p>
+<p>Do it like <code>std</code> and people will feel right at home</p>
 <aside class="notes">
 <p>Rust's std lib is a great resource that every Rust programmer knows</p>
 </aside>
@@ -369,7 +336,7 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <li class="fragment">Debug, (Partial)Ord, (Partial)Eq, Hash</li>
 <li class="fragment">Display, Error</li>
 <li class="fragment">Default</li>
-<li class="fragment">(Serde's Serialize + Deserialize)</li>
+<li class="fragment">(<a href="http://serde.rs/">Serde</a>'s Serialize + Deserialize)</li>
 </ul>
 </section><section id="goodies-parse-strings" class="slide level2">
 <h2>Goodies: Parse Strings</h2>
@@ -377,16 +344,19 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">impl</span> FromStr <span class="kw">for</span> Validation <span class="op">{</span>
     <span class="kw">type</span> Err = ParseValidationError;
 
-    <span class="kw">fn</span> from_str(s: &amp;<span class="dt">str</span>) -&gt; <span class="dt">Result</span>&lt;<span class="kw">Self</span>, <span class="kw">Self</span>::<span class="cn">Err</span>&gt; <span class="op">{</span>
-      <span class="pp">unimplemented!</span>()
-    <span class="op">}</span>
+    <span class="kw">fn</span> from_str(s: &amp;<span class="dt">str</span>) -&gt; <span class="dt">Result</span>&lt;<span class="kw">Self</span>, <span class="kw">Self</span>::<span class="cn">Err</span>&gt; <span class="op">{</span> <span class="op">}</span>
 <span class="op">}</span></code></pre></div>
+<aside class="notes">
+<p>One of the lesser known features of std. You should implement this trait whenever you want to parse a string into a type.</p>
+<p>Implemented e.g. for IP address parsing.</p>
+<p>Please note that this can fail and you should give it a good, custom error type.</p>
+</aside>
 </section><section id="goodies-iterator" class="slide level2">
 <h2>Goodies: Iterator</h2>
-<p>Let you users iterate over your data types</p>
+<p>Let your users iterate over your data types</p>
 <aside class="notes">
 <p>Iterators are great and many Rustaceans love working with them</p>
-<p>Help them by making your data structures implement the Iterator interface</p>
+<p>Help them by making your data structures implement the Iterator interface!</p>
 </aside>
 </section></section>
 <section><section id="session-types" class="titleslide slide level1"><h1>Session types</h1></section><section class="slide level2">
@@ -414,7 +384,7 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <p>More time!</p>
 <p>More slides!</p>
 <figure>
-<img src="assets/its-happening.gif" />
+<img src="assets/its-happening.gif" title="It&#39;s happening meme gif" />
 </figure>
 </section></section>
 <section><section id="iterators" class="titleslide slide level1"><h1>Iterators</h1></section><section class="slide level2">
@@ -451,10 +421,52 @@ and who enjoys writing chains of method calls with closures
 <section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section><section class="slide level2">
 
 <p>Write a new trait</p>
-<p>Usually: Implement it for <code>std</code> types</p>
-<p>But you can also: Implement it generically for other traits!</p>
+<ul>
+<li>Implement it for types like <code>Result&lt;YourData&gt;</code></li>
+<li>Implement it generically for other traits!</li>
+</ul>
+</section></section>
+<section><section id="example-validations" class="titleslide slide level1"><h1>Example: Validations</h1></section><section class="slide level2">
+
+<p>We have a list of validation criteria, like this:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="op">[</span>
+  Required,
+  Unique(Posts),
+  Max(<span class="dv">255</span>),
+<span class="op">]</span></code></pre></div>
+<p>How can we represent this?</p>
+</section><section id="using-enums" class="slide level2">
+<h2>Using enums</h2>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">enum</span> Validation <span class="op">{</span>
+  Required,
+  Unique(Table),
+  Min(<span class="dt">u64</span>),
+  Max(<span class="dt">u64</span>),
+<span class="op">}</span>
+
+<span class="kw">struct</span> Table; <span class="co">// somewhere</span></code></pre></div>
+<p>This is nice, but hard to extend.</p>
+</section><section id="use-tupleunit-structs" class="slide level2">
+<h2>Use tuple/unit structs</h2>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">struct</span> Required;
+<span class="kw">struct</span> Unique(Table);
+<span class="kw">struct</span> Min(<span class="dt">u64</span>);
+<span class="kw">struct</span> Max(<span class="dt">u64</span>);</code></pre></div>
 </section><section class="slide level2">
 
+<p>And then, implement a trait like this for each one</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">trait</span> Validate <span class="op">{</span>
+    <span class="kw">fn</span> validate&lt;T&gt;(&amp;<span class="kw">self</span>, data: T) -&gt; <span class="dt">bool</span>;
+<span class="op">}</span></code></pre></div>
+</section><section class="slide level2">
+
+<p>This way, you can do:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> std::<span class="dt">str</span>::FromStr;
+
+<span class="kw">let</span> validations = <span class="st">&quot;max:42|required&quot;</span>.parse()?;</code></pre></div>
+<aside class="notes">
+<p>Type annotations elided. Please use nice error handling.</p>
+</aside>
 </section></section>
 <section><section id="thanks" class="titleslide slide level1"><h1>Thanks!</h1></section><section id="any-questions" class="slide level2">
 <h2>Any questions?</h2>
