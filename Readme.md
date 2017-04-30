@@ -41,6 +41,10 @@ but also takes some inspiration from Brian's [Rust API guidelines][guidelines].
 [guidelines]: https://github.com/brson/rust-api-guidelines
 
 <aside class="notes">
+This talk is about idiomatic code, i.e. the art of writing code that looks nice. This is very language-specific, and there is a bunch of books written about idiomatic Java, idiomatic Go, idiomatic Python all the time.
+
+But Rust is still a new language; and, more importantly, one that is sufficiently different that it's not easy to just adapt OOP patterns.
+
 I have to warn you: There will be a lot of code. Far too much, actually.
 But this is a talk about how to write idiomatic code, so there is no going around it,
 short of inventing a new *graphical* pseudo-language.
