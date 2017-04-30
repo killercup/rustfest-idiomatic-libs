@@ -14,7 +14,7 @@ history: true
 
 ## Hi, I'm Pascal Hertleif
 
-- Web stuff by day, Rust by night!
+- "Web developer"
 - Co-organizer of [Rust Cologne]
 - {[twitter],[github]}.com/killercup
 - Rust-centric blog: [deterministic.space]
@@ -23,6 +23,14 @@ history: true
 [twitter]: https://twitter.com/killercup
 [github]: https://github.com/killercup
 [deterministic.space]: https://deterministic.space/
+
+<aside class="notes">
+- (Thanks for the kind introduction!)
+- I've been working with Rust since early 2014
+- If you ever happen to be in Cologne, Germany, drop by our monthly meetups!
+- And with that out of the way, let's get started!
+
+</aside>
 
 - - -
 
@@ -47,32 +55,48 @@ short of inventing a new *graphical* pseudo-language.
 - Easy to use _correctly_
 - Flexible and performant
 
+<aside class="notes">
+This is what people interested in using our library want to have.
+
+</aside>
+
 ## Easy to maintain
 
 - Common structures, so code is easy to grasp
 - New contributor friendly == Future-self friendly
 - Well-tested
 
+<aside class="notes">
+This is what we as developers of a library want to have.
+
+</aside>
+
 - - -
 
 > Working in libraries instead of executables, and focusing on the consumer of your API, helps you write better code.
 >
-> -- [Andrew on Twitter](https://twitter.com/andrewhobden)
+> — [Andrew Hobden](https://twitter.com/andrewhobden)
 
 <aside class="notes">
+And I think to large extend we can actually achieve both.
+
 Well put, Andrew Hobden!
+
 </aside>
 
 # Some easy things first
 
-<aside class="notes">
+- - -
+
 Let's warm up with some basics that will make every library nicer.
 
+<aside class="notes">
 This is more general advice on how to structure your code, not really on how to write great APIs.
 We'll talk about those in a minute, though.
 
 I may be rushing through this section a bit fast, but don't worry,
 that's just so we can get to really exciting stuff sooner!
+
 </aside>
 
 ## Doc tests
@@ -91,6 +115,7 @@ Well-documented == Well-tested
 Doc tests are *integration* tests that are also code examples your users can easily find.
 
 Use regular tests for weird edge cases.
+
 </aside>
 
 - - -
@@ -104,13 +129,14 @@ Start code lines with `#` to hide them in rustdoc output
 **Pro tip:** Put setup code in a file, then `# include!("src/doctest_helper.rs");`
 
 <aside class="notes">
-They are more useful when they can be copy-pasted.
+They are more useful when they can be copy-pasted as that's the first thing everyone will try to do.
 
-Your user already have setup code, so no need to duplicate this everywhere.
+But: Your user already have setup code, so no need to duplicate this everywhere (i.e., outside the README or main crate documentation).
 
 Apropos: I've written about [documentation guidelines](https://deterministic.space/machine-readable-inline-markdown-code-cocumentation.html)
 
-*Next step:* Readme-driven development (et.al.) with tango et.al.!
+*Next step:* Readme-driven development with tango et.al.!
+
 </aside>
 
 - - -
@@ -131,7 +157,8 @@ When you start a project, you might quickly end up with 1 000 lines in a `lib.r
 
 Split this up early
 
-Represent your code's architecture in the file system
+Represent your code's architecture in the file system.
+
 </aside>
 
 - - -
@@ -147,14 +174,13 @@ Represent your code's architecture in the file system
 Have you seen how pretty most of the compile errors look? They're really great.
 Let's have more of those.
 
-`deny(warnings)` turns warnings into errors
-
-`deny(missing_docs)` makes you write documentation for every *public* item
+`deny(missing_docs)`, my personal favorite, makes you write documentation for every *public* item. This is also helpful to see which items are actually part of the public API.
 
 Clippy has over 100 clever lints that help you make sure your code is great.
 E.g., when it sees you wrote a bunch of `match`/`if let` code,
 it often suggests you use one of the many methods on Option/Result,
 which is more concise and idiomatic.
+
 </aside>
 
 
@@ -164,6 +190,8 @@ which is more concise and idiomatic.
 - Less to maintain
 - Less opportunity to introduce breaking changes
 
+. . .
+
 `pub use specific::Thing` is your friend
 
 <aside class="notes">
@@ -171,41 +199,39 @@ Maybe this is obvious, but the less public items your API actually has,
 the less things you have to worry about when making changes or writing documentation.
 
 It's a good practice to hide implementation details. Be careful with those `pub`s!
+
 </aside>
 
 
 # Use the type system, Luke
 
-<aside class="notes">
-In Rust, it is _very_ idiomatic to move as many error cases as possible to compile-time.
-
-If you have been using scripting languages a lot, this may seem unfamiliar.
-</aside>
-
 - - -
 
 > Make illegal states unrepresentable
 >
-> -- Haskell mantra
+> — Haskell mantra
 
-<aside class="notes">
-As preferred by that community, the Haskellers puts it in a kinda difficult to read way.
-
-We Rustaceans are more easily hooked by a promise of safety anyway.
-</aside>
-
-- - -
+. . .
 
 > The safest program is the program that doesn't compile
 >
-> -- ancient Rust proverb
+> — ancient Rust proverb
 >
-> Actually: [Manish on Twitter](https://twitter.com/ManishEarth/status/843248038139195397)
+> (Actually: [Manish on Twitter](https://twitter.com/ManishEarth/status/843248038139195397))
 
 <aside class="notes">
-Now *that* I can support! And you can trust him, Maniष Goregaokar knows what he's talking about.
+In Rust, it is _very_ idiomatic to catch as many error cases as possible at compile-time.
 
-Let's dive into some patterns to make your Rust APIs nicer to use.
+If you have been using scripting languages a lot, this may seem unfamiliar.
+
+During the rest of the talk, I'll present some useful patterns to help you make use of the type system while also not making things way too complicated. The line between type-safe and pragmatic is often blurry.
+
+Haskell: Precise and effective.
+
+We Rustaceans are more easily hooked by a promise of safety.
+
+And you can trust him, Maniष Goregaokar knows what he's talking about.
+
 </aside>
 
 # Avoid stringly-typed APIs
@@ -218,11 +244,11 @@ This is not how you do it Rust. Write types instead!
 
 - - -
 
-`fn print_in_color(color: &str, text: &str) {}`
+`fn print(color: &str, text: &str) {}`
 
 . . .
 
-`print_in_color("Foobar", "blue");`
+`print("Foobar", "blue");`
 
 <aside class="notes">
 Just a regular function, right?
@@ -233,11 +259,11 @@ Just a regular function, right?
 - - -
 
 ```rust
-fn print_in_color(color: Color, text: &str) {}
+fn print(color: Color, text: &str) {}
 
 enum Color { Red, Green, CornflowerBlue }
 
-print_in_color(Green, "lgtm");
+print(Green, "lgtm");
 ```
 
 <aside class="notes">
@@ -306,6 +332,8 @@ Command::new("ls").arg("-l")
 ```
 
 <aside class="notes">
+Rust doesn't have default params, or optional params, but we do have methods and traits!
+
 This is using `std::process::Command` to build a subprocess and spawn it.
 </aside>
 
@@ -316,6 +344,12 @@ Builders allow you to
 - validate and convert parameters implicitly
 - use default values
 - keep your internal structure hidden
+
+<aside class="notes">
+Also: Consuming builders, taking `mut self` are often the way to go.
+
+</aside>
+
 
 - - -
 
@@ -359,19 +393,20 @@ Traits are the basic building block for nice APIs in Rust.
 
 Reduce boilerplate by converting input data
 
-```rust
-File::open("foo.txt")
-```
+`File::open("foo.txt")`
 
-Open file at this `Path` (by converting our `&str`)
+Open file at this `Path` (by converting the given `&str`)
+
+<aside class="notes">
+`fn open<P: AsRef<Path>>(path: P) -> Result<File>`
+
+</aside>
 
 - - -
 
 Implementing these traits makes it easier to work with your types
 
-```rust
-let x: IpAddress = [127, 0, 0, 1].into();
-```
+`let x: IpAddress = [127, 0, 0, 1].into();`
 
 <aside class="notes">
 Another example:
@@ -432,13 +467,13 @@ Implement ALL the traits!
 
 ## Goodies: Parse Strings
 
-Get `"foo".parse()` with [FromStr]:
+Get `"green".parse()` with [FromStr]:
 
 [FromStr]: https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html
 
 ```rust
-impl FromStr for Validation {
-    type Err = ParseValidationError;
+impl FromStr for Color {
+    type Err = UnknownColorError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> { }
 }
@@ -454,7 +489,7 @@ Please note that this can fail and you should give it a good, custom error type.
 
 </aside>
 
-## Goodies: Iterator
+## Goodies: Implement Iterator
 
 Let your users iterate over your data types
 
@@ -462,6 +497,8 @@ Let your users iterate over your data types
 Iterators are great and many Rustaceans love working with them
 
 Help them by making your data structures implement the Iterator interface!
+
+For example `regex::Matches`
 
 </aside>
 
@@ -480,12 +517,9 @@ HttpResponse::new()
 ```
 
 <aside class="notes">
-Let's imagine we're implementing a protocol like HTTP
+Let's imagine we're implementing a protocol like HTTP: We first need to write the headers, and then the body of the request
 
-We first need to write the headers, and then the body of the request
-
-Rust lets us write the implementation in such a way that
-after writing the first line of the body you can't call `add_header` any more.
+Rust lets us write the implementation in such a way that after writing the first line of the body you can't call `add_header` any more.
 
 </aside>
 
@@ -493,8 +527,31 @@ after writing the first line of the body you can't call `add_header` any more.
 
 ## Implementing Session Types
 
-1. New data type for each state
-2. `struct Data<T> { }` + `impl X for Data<Foo> { }` + `impl X for Data<Bar> { }`
+Define a type for each state
+
+Go from one state to another by returning a different type
+
+<aside class="notes">
+I tried to condense this to the bare minimum, and I hope you can follow it.
+
+The more general idea is to write a state machine in type system. This can allow for all sorts of cool things.
+
+There are some alternative way to implement this, e.g. by using a struct with a type parameter, or by implementing `From` and using `into` to transition between states.
+
+</aside>
+
+## Annotated example
+
+```rust
+HttpResponse::new()  // NewResponse
+.header("Foo", "1")  // WritingHeaders
+.header("Bar", "2")  // WritingHeaders
+.body("Lorem ipsum") // WritingBody
+.header("Baz", "3")
+// ^- ERROR: no method `header` found for type `WritingBody`
+```
+
+## Questions
 
 
 # Do we have some more time?
@@ -520,7 +577,9 @@ Functional programming as a zero-cost abstraction
 I'm one of those people who'd rather read
 
 ```rust
-vec!["foo", "bar"].iter().flat_map(str::chars).any(char::is_whitespace);
+vec!["foo", "bar"].iter()
+  .flat_map(str::chars)
+  .any(char::is_whitespace);
 ```
 
 and who enjoys writing chains of method calls with closures
@@ -528,7 +587,7 @@ and who enjoys writing chains of method calls with closures
 
 - - -
 
-## `IntoIter` as input
+## Iterator as input
 
 Abstract over collections
 
@@ -555,7 +614,7 @@ This works with
 
 ## Construct types using FromIterator
 
-The magic behind `.collect()`
+`let x: AddressBook = people.collect();`
 
 
 
@@ -563,10 +622,8 @@ The magic behind `.collect()`
 
 - - -
 
-Write a new trait
-
-- Implement it for types like `Result<YourData>`
-- Implement it generically for other traits!
+- Implement a trait for types like `Result<YourData>`
+- Implement a trait generically for other traits
 
 
 # Example: Validations

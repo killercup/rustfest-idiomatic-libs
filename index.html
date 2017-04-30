@@ -53,6 +53,9 @@
     .reveal a[href^="#"]:visited {
       color: #8ea9d2;
     }
+    
+    /*.reveal .sourceCode pre { font-size: 1em; }
+    .reveal .sourceCode pre code { word-wrap: break-word; }*/
   </style>
   <link rel="stylesheet" href="template/css/theme/solarized.css" id="theme">
   <!-- Printing and PDF exports -->
@@ -80,11 +83,19 @@
 <section id="hi-im-pascal-hertleif" class="slide level2">
 <h2>Hi, I'm Pascal Hertleif</h2>
 <ul>
-<li>Web stuff by day, Rust by night!</li>
+<li>&quot;Web developer&quot;</li>
 <li>Co-organizer of <a href="http://rust.cologne/">Rust Cologne</a></li>
 <li>{<a href="https://twitter.com/killercup">twitter</a>,<a href="https://github.com/killercup">github</a>}.com/killercup</li>
 <li>Rust-centric blog: <a href="https://deterministic.space/">deterministic.space</a></li>
 </ul>
+<aside class="notes">
+<ul>
+<li>(Thanks for the kind introduction!)</li>
+<li>I've been working with Rust since early 2014</li>
+<li>If you ever happen to be in Cologne, Germany, drop by our monthly meetups!</li>
+<li>And with that out of the way, let's get started!</li>
+</ul>
+</aside>
 </section>
 <section class="slide level2">
 
@@ -100,6 +111,9 @@
 <li>Easy to use <em>correctly</em></li>
 <li>Flexible and performant</li>
 </ul>
+<aside class="notes">
+<p>This is what people interested in using our library want to have.</p>
+</aside>
 </section><section id="easy-to-maintain" class="slide level2">
 <h2>Easy to maintain</h2>
 <ul>
@@ -107,17 +121,28 @@
 <li>New contributor friendly == Future-self friendly</li>
 <li>Well-tested</li>
 </ul>
+<aside class="notes">
+<p>This is what we as developers of a library want to have.</p>
+</aside>
 </section><section class="slide level2">
 
 <blockquote>
 <p>Working in libraries instead of executables, and focusing on the consumer of your API, helps you write better code.</p>
-<p>-- <a href="https://twitter.com/andrewhobden">Andrew on Twitter</a></p>
+<p>— <a href="https://twitter.com/andrewhobden">Andrew Hobden</a></p>
 </blockquote>
 <aside class="notes">
-Well put, Andrew Hobden!
+<p>And I think to large extend we can actually achieve both.</p>
+<p>Well put, Andrew Hobden!</p>
 </aside>
 </section></section>
-<section><section id="some-easy-things-first" class="titleslide slide level1"><h1>Some easy things first</h1></section><section id="doc-tests" class="slide level2">
+<section><section id="some-easy-things-first" class="titleslide slide level1"><h1>Some easy things first</h1></section><section class="slide level2">
+
+<p>Let's warm up with some basics that will make every library nicer.</p>
+<aside class="notes">
+<p>This is more general advice on how to structure your code, not really on how to write great APIs. We'll talk about those in a minute, though.</p>
+<p>I may be rushing through this section a bit fast, but don't worry, that's just so we can get to really exciting stuff sooner!</p>
+</aside>
+</section><section id="doc-tests" class="slide level2">
 <h2>Doc tests</h2>
 <p>Well-documented == Well-tested</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="co">/// Check number for awesomeness</span>
@@ -127,7 +152,7 @@ Well put, Andrew Hobden!
 <span class="co">/// ```</span></code></pre></div>
 <aside class="notes">
 <p>Doc tests are <em>integration</em> tests that are also code examples your users can easily find.</p>
-Use regular tests for weird edge cases.
+<p>Use regular tests for weird edge cases.</p>
 </aside>
 </section><section class="slide level2">
 
@@ -136,10 +161,10 @@ Use regular tests for weird edge cases.
 <p>Start code lines with <code>#</code> to hide them in rustdoc output</p>
 <p><strong>Pro tip:</strong> Put setup code in a file, then <code># include!(&quot;src/doctest_helper.rs&quot;);</code></p>
 <aside class="notes">
-<p>They are more useful when they can be copy-pasted.</p>
-<p>Your user already have setup code, so no need to duplicate this everywhere.</p>
+<p>They are more useful when they can be copy-pasted as that's the first thing everyone will try to do.</p>
+<p>But: Your user already have setup code, so no need to duplicate this everywhere (i.e., outside the README or main crate documentation).</p>
 <p>Apropos: I've written about <a href="https://deterministic.space/machine-readable-inline-markdown-code-cocumentation.html">documentation guidelines</a></p>
-<em>Next step:</em> Readme-driven development (et.al.) with tango et.al.!
+<p><em>Next step:</em> Readme-driven development with tango et.al.!</p>
 </aside>
 </section><section id="directories-and-files" class="slide level2">
 <h2>Directories and files</h2>
@@ -155,7 +180,7 @@ Use regular tests for weird edge cases.
 <aside class="notes">
 <p>When you start a project, you might quickly end up with 1 000 lines in a <code>lib.rs</code></p>
 <p>Split this up early</p>
-Represent your code's architecture in the file system
+<p>Represent your code's architecture in the file system.</p>
 </aside>
 </section><section id="get-more-compiler-errors" class="slide level2">
 <h2>Get more compiler errors!</h2>
@@ -165,9 +190,8 @@ Represent your code's architecture in the file system
 </ul>
 <aside class="notes">
 <p>Have you seen how pretty most of the compile errors look? They're really great. Let's have more of those.</p>
-<p><code>deny(warnings)</code> turns warnings into errors</p>
-<p><code>deny(missing_docs)</code> makes you write documentation for every <em>public</em> item</p>
-Clippy has over 100 clever lints that help you make sure your code is great. E.g., when it sees you wrote a bunch of <code>match</code>/<code>if let</code> code, it often suggests you use one of the many methods on Option/Result, which is more concise and idiomatic.
+<p><code>deny(missing_docs)</code>, my personal favorite, makes you write documentation for every <em>public</em> item. This is also helpful to see which items are actually part of the public API.</p>
+<p>Clippy has over 100 clever lints that help you make sure your code is great. E.g., when it sees you wrote a bunch of <code>match</code>/<code>if let</code> code, it often suggests you use one of the many methods on Option/Result, which is more concise and idiomatic.</p>
 </aside>
 </section><section id="keep-the-api-surface-small" class="slide level2">
 <h2>Keep the API surface small</h2>
@@ -176,39 +200,41 @@ Clippy has over 100 clever lints that help you make sure your code is great. E.g
 <li>Less to maintain</li>
 <li>Less opportunity to introduce breaking changes</li>
 </ul>
+<div class="fragment">
 <p><code>pub use specific::Thing</code> is your friend</p>
 <aside class="notes">
 <p>Maybe this is obvious, but the less public items your API actually has, the less things you have to worry about when making changes or writing documentation.</p>
-It's a good practice to hide implementation details. Be careful with those <code>pub</code>s!
+<p>It's a good practice to hide implementation details. Be careful with those <code>pub</code>s!</p>
 </aside>
+</div>
 </section></section>
 <section><section id="use-the-type-system-luke" class="titleslide slide level1"><h1>Use the type system, Luke</h1></section><section class="slide level2">
 
 <blockquote>
 <p>Make illegal states unrepresentable</p>
-<p>-- Haskell mantra</p>
+<p>— Haskell mantra</p>
 </blockquote>
-<aside class="notes">
-<p>As preferred by that community, the Haskellers puts it in a kinda difficult to read way.</p>
-We Rustaceans are more easily hooked by a promise of safety anyway.
-</aside>
-</section><section class="slide level2">
-
+<div class="fragment">
 <blockquote>
 <p>The safest program is the program that doesn't compile</p>
-<p>-- ancient Rust proverb</p>
-<p>Actually: <a href="https://twitter.com/ManishEarth/status/843248038139195397">Manish on Twitter</a></p>
+<p>— ancient Rust proverb</p>
+<p>(Actually: <a href="https://twitter.com/ManishEarth/status/843248038139195397">Manish on Twitter</a>)</p>
 </blockquote>
 <aside class="notes">
-<p>Now <em>that</em> I can support! And you can trust him, Maniष Goregaokar knows what he's talking about.</p>
-Let's dive into some patterns to make your Rust APIs nicer to use.
+<p>In Rust, it is <em>very</em> idiomatic to catch as many error cases as possible at compile-time.</p>
+<p>If you have been using scripting languages a lot, this may seem unfamiliar.</p>
+<p>During the rest of the talk, I'll present some useful patterns to help you make use of the type system while also not making things way too complicated. The line between type-safe and pragmatic is often blurry.</p>
+<p>Haskell: Precise and effective.</p>
+<p>We Rustaceans are more easily hooked by a promise of safety.</p>
+<p>And you can trust him, Maniष Goregaokar knows what he's talking about.</p>
 </aside>
+</div>
 </section></section>
 <section><section id="avoid-stringly-typed-apis" class="titleslide slide level1"><h1>Avoid stringly-typed APIs</h1></section><section class="slide level2">
 
-<p><code>fn print_in_color(color: &amp;str, text: &amp;str) {}</code></p>
+<p><code>fn print(color: &amp;str, text: &amp;str) {}</code></p>
 <div class="fragment">
-<p><code>print_in_color(&quot;Foobar&quot;, &quot;blue&quot;);</code></p>
+<p><code>print(&quot;Foobar&quot;, &quot;blue&quot;);</code></p>
 <aside class="notes">
 <p>Just a regular function, right?</p>
 ... oops. Runtime error!
@@ -216,11 +242,11 @@ Let's dive into some patterns to make your Rust APIs nicer to use.
 </div>
 </section><section class="slide level2">
 
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> print_in_color(color: Color, text: &amp;<span class="dt">str</span>) <span class="op">{}</span>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> print(color: Color, text: &amp;<span class="dt">str</span>) <span class="op">{}</span>
 
 <span class="kw">enum</span> Color <span class="op">{</span> Red, Green, CornflowerBlue <span class="op">}</span>
 
-print_in_color(Green, <span class="st">&quot;lgtm&quot;</span>);</code></pre></div>
+print(Green, <span class="st">&quot;lgtm&quot;</span>);</code></pre></div>
 <aside class="notes">
 <p>This is way more idiomatic. Very nice.</p>
 <p>Later: <code>&quot;red&quot;.parse::&lt;Color&gt;()?</code></p>
@@ -257,6 +283,7 @@ output(<span class="st">&quot;foo&quot;</span>, DisplayStyle::Color);</code></pr
     .env_clear()
     .spawn()</code></pre></div>
 <aside class="notes">
+<p>Rust doesn't have default params, or optional params, but we do have methods and traits!</p>
 This is using <code>std::process::Command</code> to build a subprocess and spawn it.
 </aside>
 </section><section class="slide level2">
@@ -267,6 +294,9 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <li>use default values</li>
 <li>keep your internal structure hidden</li>
 </ul>
+<aside class="notes">
+<p>Also: Consuming builders, taking <code>mut self</code> are often the way to go.</p>
+</aside>
 </section><section class="slide level2">
 
 <p>Builders are forward compatible:</p>
@@ -289,12 +319,15 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 </section><section class="slide level2">
 
 <p>Reduce boilerplate by converting input data</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust">File::open(<span class="st">&quot;foo.txt&quot;</span>)</code></pre></div>
-<p>Open file at this <code>Path</code> (by converting our <code>&amp;str</code>)</p>
+<p><code>File::open(&quot;foo.txt&quot;)</code></p>
+<p>Open file at this <code>Path</code> (by converting the given <code>&amp;str</code>)</p>
+<aside class="notes">
+<p><code>fn open&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; Result&lt;File&gt;</code></p>
+</aside>
 </section><section class="slide level2">
 
 <p>Implementing these traits makes it easier to work with your types</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">let</span> x: IpAddress = <span class="op">[</span><span class="dv">127</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span><span class="op">]</span>.into();</code></pre></div>
+<p><code>let x: IpAddress = [127, 0, 0, 1].into();</code></p>
 <aside class="notes">
 <p>Another example:</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">use</span> serde_json::Value <span class="kw">as</span> Json;
@@ -340,9 +373,9 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 </ul>
 </section><section id="goodies-parse-strings" class="slide level2">
 <h2>Goodies: Parse Strings</h2>
-<p>Get <code>&quot;foo&quot;.parse()</code> with <a href="https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html">FromStr</a>:</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">impl</span> FromStr <span class="kw">for</span> Validation <span class="op">{</span>
-    <span class="kw">type</span> Err = ParseValidationError;
+<p>Get <code>&quot;green&quot;.parse()</code> with <a href="https://doc.rust-lang.org/nightly/std/str/trait.FromStr.html">FromStr</a>:</p>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">impl</span> FromStr <span class="kw">for</span> Color <span class="op">{</span>
+    <span class="kw">type</span> Err = UnknownColorError;
 
     <span class="kw">fn</span> from_str(s: &amp;<span class="dt">str</span>) -&gt; <span class="dt">Result</span>&lt;<span class="kw">Self</span>, <span class="kw">Self</span>::<span class="cn">Err</span>&gt; <span class="op">{</span> <span class="op">}</span>
 <span class="op">}</span></code></pre></div>
@@ -351,12 +384,13 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <p>Implemented e.g. for IP address parsing.</p>
 <p>Please note that this can fail and you should give it a good, custom error type.</p>
 </aside>
-</section><section id="goodies-iterator" class="slide level2">
-<h2>Goodies: Iterator</h2>
+</section><section id="goodies-implement-iterator" class="slide level2">
+<h2>Goodies: Implement Iterator</h2>
 <p>Let your users iterate over your data types</p>
 <aside class="notes">
 <p>Iterators are great and many Rustaceans love working with them</p>
 <p>Help them by making your data structures implement the Iterator interface!</p>
+<p>For example <code>regex::Matches</code></p>
 </aside>
 </section></section>
 <section><section id="session-types" class="titleslide slide level1"><h1>Session types</h1></section><section class="slide level2">
@@ -368,16 +402,28 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 .header(<span class="st">&quot;Baz&quot;</span>, <span class="st">&quot;3&quot;</span>)
 <span class="co">// ^- Error, no such method</span></code></pre></div>
 <aside class="notes">
-<p>Let's imagine we're implementing a protocol like HTTP</p>
-<p>We first need to write the headers, and then the body of the request</p>
+<p>Let's imagine we're implementing a protocol like HTTP: We first need to write the headers, and then the body of the request</p>
 <p>Rust lets us write the implementation in such a way that after writing the first line of the body you can't call <code>add_header</code> any more.</p>
 </aside>
 </section><section id="implementing-session-types" class="slide level2">
 <h2>Implementing Session Types</h2>
-<ol type="1">
-<li>New data type for each state</li>
-<li><code>struct Data&lt;T&gt; { }</code> + <code>impl X for Data&lt;Foo&gt; { }</code> + <code>impl X for Data&lt;Bar&gt; { }</code></li>
-</ol>
+<p>Define a type for each state</p>
+<p>Go from one state to another by returning a different type</p>
+<aside class="notes">
+<p>I tried to condense this to the bare minimum, and I hope you can follow it.</p>
+<p>The more general idea is to write a state machine in type system. This can allow for all sorts of cool things.</p>
+<p>There are some alternative way to implement this, e.g. by using a struct with a type parameter, or by implementing <code>From</code> and using <code>into</code> to transition between states.</p>
+</aside>
+</section><section id="annotated-example" class="slide level2">
+<h2>Annotated example</h2>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust">HttpResponse::new()  <span class="co">// NewResponse</span>
+.header(<span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;1&quot;</span>)  <span class="co">// WritingHeaders</span>
+.header(<span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;2&quot;</span>)  <span class="co">// WritingHeaders</span>
+.body(<span class="st">&quot;Lorem ipsum&quot;</span>) <span class="co">// WritingBody</span>
+.header(<span class="st">&quot;Baz&quot;</span>, <span class="st">&quot;3&quot;</span>)
+<span class="co">// ^- ERROR: no method `header` found for type `WritingBody`</span></code></pre></div>
+</section><section id="questions" class="slide level2">
+<h2>Questions</h2>
 </section></section>
 <section><section id="do-we-have-some-more-time" class="titleslide slide level1"><h1>Do we have some more time?</h1></section><section class="slide level2">
 
@@ -393,11 +439,13 @@ This is using <code>std::process::Command</code> to build a subprocess and spawn
 <p>Functional programming as a zero-cost abstraction</p>
 <aside class="notes">
 <p>I'm one of those people who'd rather read</p>
-<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="pp">vec!</span><span class="op">[</span><span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span><span class="op">]</span>.iter().flat_map(<span class="dt">str</span>::chars).any(<span class="dt">char</span>::is_whitespace);</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="pp">vec!</span><span class="op">[</span><span class="st">&quot;foo&quot;</span>, <span class="st">&quot;bar&quot;</span><span class="op">]</span>.iter()
+  .flat_map(<span class="dt">str</span>::chars)
+  .any(<span class="dt">char</span>::is_whitespace);</code></pre></div>
 and who enjoys writing chains of method calls with closures
 </aside>
-</section><section id="intoiter-as-input" class="slide level2">
-<h2><code>IntoIter</code> as input</h2>
+</section><section id="iterator-as-input" class="slide level2">
+<h2>Iterator as input</h2>
 <p>Abstract over collections</p>
 <p>Avoid allocations</p>
 <div class="sourceCode"><pre class="sourceCode rust"><code class="sourceCode rust"><span class="kw">fn</span> foo(data: &amp;HashMap&lt;<span class="dt">i32</span>, <span class="dt">i32</span>&gt;) <span class="op">{</span> <span class="op">}</span>
@@ -416,14 +464,13 @@ and who enjoys writing chains of method calls with closures
 </aside>
 </section><section id="construct-types-using-fromiterator" class="slide level2">
 <h2>Construct types using FromIterator</h2>
-<p>The magic behind <code>.collect()</code></p>
+<p><code>let x: AddressBook = people.collect();</code></p>
 </section></section>
 <section><section id="extension-traits" class="titleslide slide level1"><h1>Extension traits</h1></section><section class="slide level2">
 
-<p>Write a new trait</p>
 <ul>
-<li>Implement it for types like <code>Result&lt;YourData&gt;</code></li>
-<li>Implement it generically for other traits!</li>
+<li>Implement a trait for types like <code>Result&lt;YourData&gt;</code></li>
+<li>Implement a trait generically for other traits</li>
 </ul>
 </section></section>
 <section><section id="example-validations" class="titleslide slide level1"><h1>Example: Validations</h1></section><section class="slide level2">
