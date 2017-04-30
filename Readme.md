@@ -4,7 +4,7 @@ categories:
 - rust
 - presentation
 author: Pascal Hertleif
-date: 2017-04-27
+date: 2017-04-30
 # pandoc settings
 theme: solarized
 progress: true
@@ -493,12 +493,12 @@ Please note that this can fail and you should give it a good, custom error type.
 
 Let your users iterate over your data types
 
+For example: `regex::Matches`
+
 <aside class="notes">
 Iterators are great and many Rustaceans love working with them
 
 Help them by making your data structures implement the Iterator interface!
-
-For example `regex::Matches`
 
 </aside>
 
