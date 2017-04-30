@@ -708,4 +708,8 @@ Type annotations elided. Please use nice error handling.
 
 # Thanks!
 
+- - -
+
 ## Any questions?
+
+Slides available at [git.io/idiomatic-rust-fest](https://git.io/idiomatic-rust-fest)
