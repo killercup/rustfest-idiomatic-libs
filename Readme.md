@@ -176,7 +176,8 @@ Let's have more of those.
 
 `deny(missing_docs)`, my personal favorite, makes you write documentation for every *public* item. This is also helpful to see which items are actually part of the public API.
 
-Clippy has over 100 clever lints that help you make sure your code is great.
+Manish already talked about Clippy in his keynote earlier.
+Clippy has about 200 clever lints that help you make sure your code is great.
 E.g., when it sees you wrote a bunch of `match`/`if let` code,
 it often suggests you use one of the many methods on Option/Result,
 which is more concise and idiomatic.
@@ -230,7 +231,7 @@ Haskell: Precise and effective.
 
 We Rustaceans are more easily hooked by a promise of safety.
 
-And you can trust him, Maniष Goregaokar knows what he's talking about.
+And you can trust him, Manish Goregaokar knows what he's talking about.
 
 </aside>
 

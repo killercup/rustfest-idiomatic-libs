@@ -54,8 +54,9 @@
       color: #8ea9d2;
     }
     
-    /*.reveal .sourceCode pre { font-size: 1em; }
-    .reveal .sourceCode pre code { word-wrap: break-word; }*/
+    .reveal p, .slide {
+        line-height: 1.5 !important;
+    }
   </style>
   <link rel="stylesheet" href="template/css/theme/solarized.css" id="theme">
   <!-- Printing and PDF exports -->
@@ -191,7 +192,7 @@
 <aside class="notes">
 <p>Have you seen how pretty most of the compile errors look? They're really great. Let's have more of those.</p>
 <p><code>deny(missing_docs)</code>, my personal favorite, makes you write documentation for every <em>public</em> item. This is also helpful to see which items are actually part of the public API.</p>
-<p>Clippy has over 100 clever lints that help you make sure your code is great. E.g., when it sees you wrote a bunch of <code>match</code>/<code>if let</code> code, it often suggests you use one of the many methods on Option/Result, which is more concise and idiomatic.</p>
+<p>Manish already talked about Clippy in his keynote earlier. Clippy has about 200 clever lints that help you make sure your code is great. E.g., when it sees you wrote a bunch of <code>match</code>/<code>if let</code> code, it often suggests you use one of the many methods on Option/Result, which is more concise and idiomatic.</p>
 </aside>
 </section><section id="keep-the-api-surface-small" class="slide level2">
 <h2>Keep the API surface small</h2>
@@ -226,7 +227,7 @@
 <p>During the rest of the talk, I'll present some useful patterns to help you make use of the type system while also not making things way too complicated. The line between type-safe and pragmatic is often blurry.</p>
 <p>Haskell: Precise and effective.</p>
 <p>We Rustaceans are more easily hooked by a promise of safety.</p>
-<p>And you can trust him, Maniष Goregaokar knows what he's talking about.</p>
+<p>And you can trust him, Manish Goregaokar knows what he's talking about.</p>
 </aside>
 </div>
 </section></section>
